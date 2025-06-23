@@ -1,37 +1,55 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { researchVCFirm } from '@/lib/openai'
-import { generateMockReport } from '@/lib/mock-data'
+
+// Simple mock data function (inline to avoid import issues)
+function generateSimpleMockReport(vcFirmName: string, companyName: string) {
+  return {
+    firmProfile: {
+      name: vcFirmName,
+      description: `${vcFirmName} is a leading venture capital firm.`,
+      founded: "2010",
+      location: "San Francisco, CA",
+      website: `https://www.${vcFirmName.toLowerCase().replace(/\s+/g, '')}.com`,
+      focusAreas: ["SaaS", "AI/ML", "Fintech"],
+      typicalInvestmentSize: "$1M - $10M",
+      stage: ["Seed", "Series A"],
+      notableInvestments: [],
+      keyPartners: []
+    },
+    recentNews: [],
+    recentInvestments: [],
+    competitiveAnalysis: [],
+    alternativeVCs: [],
+    generatedAt: new Date().toISOString()
+  }
+}
 
 export async function POST(request: NextRequest) {
   try {
-    const { vcFirmName, companyName } = await request.json()
+    console.log('API called')
+    
+    const body = await request.json()
+    const { vcFirmName, companyName } = body
+    
+    console.log('Data:', { vcFirmName, companyName })
 
     if (!vcFirmName || !companyName) {
       return NextResponse.json(
-        { error: 'VC firm name and company name are required' },
+        { error: 'Missing required fields' },
         { status: 400 }
       )
     }
 
-    // Check if OpenAI API key is available
-    if (!process.env.OPENAI_API_KEY) {
-      console.log('OpenAI API key not found, using mock data for demo')
-      // Use mock data for demo purposes
-      const report = generateMockReport(vcFirmName, companyName)
-      return NextResponse.json(report)
-    }
-
-    // Use real OpenAI research if API key is available
-    const report = await researchVCFirm(vcFirmName, companyName)
+    // Always use simple mock data for now
+    const report = generateSimpleMockReport(vcFirmName, companyName)
     
+    console.log('Report generated successfully')
     return NextResponse.json(report)
+    
   } catch (error) {
-    console.error('Research API error:', error)
-    
-    // Fallback to mock data if OpenAI fails
-    const { vcFirmName, companyName } = await request.json()
-    console.log('Falling back to mock data due to error')
-    const report = generateMockReport(vcFirmName, companyName)
-    return NextResponse.json(report)
+    console.error('API Error:', error)
+    return NextResponse.json(
+      { error: 'Server error', details: String(error) },
+      { status: 500 }
+    )
   }
 }
