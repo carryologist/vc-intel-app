@@ -1,0 +1,54 @@
+export interface VCFirmProfile {
+  name: string;
+  description: string;
+  founded: string;
+  location: string;
+  website: string;
+  focusAreas: string[];
+  typicalInvestmentSize: string;
+  stage: string[];
+}
+
+export interface RecentNews {
+  title: string;
+  source: string;
+  date: string;
+  url: string;
+  summary: string;
+}
+
+export interface Investment {
+  companyName: string;
+  amount: string;
+  date: string;
+  round: string;
+  description: string;
+}
+
+export interface CompetitiveAnalysis {
+  companyName: string;
+  similarity: string;
+  reasoning: string;
+  potentialConcerns: string[];
+}
+
+export interface AlternativeVC {
+  name: string;
+  reasoning: string;
+  focusAlignment: string;
+  contactInfo?: string;
+}
+
+export interface VCResearchReport {
+  firmProfile: VCFirmProfile;
+  recentNews: RecentNews[];
+  recentInvestments: Investment[];
+  competitiveAnalysis: CompetitiveAnalysis[];
+  alternativeVCs: AlternativeVC[];
+  generatedAt: string;
+}
+
+export interface ResearchRequest {
+  vcFirmName: string;
+  companyName: string;
+}
