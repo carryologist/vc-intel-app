@@ -19,14 +19,34 @@ Please provide a detailed JSON response with the following structure:
 
 {
   "firmProfile": {
-    "name": "Exact firm name",
+    "name": "Exact firm name (properly capitalized)",
     "description": "Detailed description of the firm",
     "founded": "Year founded",
     "location": "Primary location",
     "website": "Official website URL",
     "focusAreas": ["Array of focus areas/sectors"],
     "typicalInvestmentSize": "Investment range",
-    "stage": ["Investment stages they focus on"]
+    "stage": ["Investment stages they focus on"],
+    "notableInvestments": [
+      {
+        "companyName": "Notable portfolio company",
+        "amount": "Investment amount",
+        "date": "YYYY-MM-DD",
+        "round": "Series A/B/Seed etc",
+        "description": "Brief company description",
+        "exitStatus": "Public/Acquired/Private",
+        "exitValue": "Exit valuation or acquisition price if known"
+      }
+    ],
+    "keyPartners": [
+      {
+        "name": "Partner name",
+        "title": "Partner title",
+        "focusArea": "Technology focus area",
+        "experience": "Brief background",
+        "relevanceReason": "Why this partner is relevant to ${companyName}"
+      }
+    ]
   },
   "recentNews": [
     {

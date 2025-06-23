@@ -1,3 +1,21 @@
+export interface NotableInvestment {
+  companyName: string;
+  amount: string;
+  date: string;
+  round: string;
+  description: string;
+  exitStatus?: string;
+  exitValue?: string;
+}
+
+export interface KeyPartner {
+  name: string;
+  title: string;
+  focusArea: string;
+  experience: string;
+  relevanceReason?: string;
+}
+
 export interface VCFirmProfile {
   name: string;
   description: string;
@@ -7,6 +25,8 @@ export interface VCFirmProfile {
   focusAreas: string[];
   typicalInvestmentSize: string;
   stage: string[];
+  notableInvestments: NotableInvestment[];
+  keyPartners: KeyPartner[];
 }
 
 export interface RecentNews {

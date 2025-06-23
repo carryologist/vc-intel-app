@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { ResearchForm } from '@/components/ResearchForm'
 import { ResearchResults } from '@/components/ResearchResults'
+import { PrintButton } from '@/components/PrintButton'
 import { VCResearchReport } from '@/types'
 
 export default function Home() {
@@ -36,8 +37,8 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <div className="container mx-auto px-4 py-8">
-        <div className="text-center mb-12">
+      <div className="container mx-auto px-4 py-8 print-container">
+        <div className="text-center mb-12 no-print">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
             VC Intel App
           </h1>
@@ -47,10 +48,18 @@ export default function Home() {
         </div>
 
         <div className="max-w-4xl mx-auto">
-          <ResearchForm onSubmit={handleResearch} loading={loading} />
+          <div className="no-print">
+            <ResearchForm onSubmit={handleResearch} loading={loading} />
+          </div>
           
           {report && (
             <div className="mt-12">
+              <div className="flex justify-between items-center mb-6 no-print">
+                <h2 className="text-2xl font-bold text-gray-900">
+                  Research Report
+                </h2>
+                <PrintButton disabled={loading} />
+              </div>
               <ResearchResults report={report} />
             </div>
           )}

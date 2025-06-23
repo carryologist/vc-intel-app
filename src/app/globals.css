@@ -18,3 +18,82 @@ body {
   color: hsl(var(--foreground));
   background: hsl(var(--background));
 }
+
+/* Print styles for PDF export */
+@media print {
+  @page {
+    margin: 0.75in;
+    size: letter;
+  }
+  
+  body {
+    background: white !important;
+    color: black !important;
+    font-size: 12pt;
+    line-height: 1.4;
+  }
+  
+  /* Hide elements that shouldn't be printed */
+  .no-print {
+    display: none !important;
+  }
+  
+  /* Ensure proper page breaks */
+  .print-section {
+    break-inside: avoid;
+    page-break-inside: avoid;
+    margin-bottom: 1rem;
+  }
+  
+  /* Adjust spacing for print */
+  .print-container {
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  
+  /* Make sure backgrounds show in print */
+  .print-bg {
+    -webkit-print-color-adjust: exact !important;
+    color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  
+  /* Adjust font sizes for print */
+  h1 { font-size: 24pt; margin-bottom: 12pt; }
+  h2 { font-size: 18pt; margin-bottom: 10pt; }
+  h3 { font-size: 16pt; margin-bottom: 8pt; }
+  h4 { font-size: 14pt; margin-bottom: 6pt; }
+  
+  /* Ensure proper spacing */
+  .space-y-8 > * + * {
+    margin-top: 1.5rem !important;
+  }
+  
+  .space-y-4 > * + * {
+    margin-top: 1rem !important;
+  }
+  
+  /* Adjust grid layouts for print */
+  .grid {
+    display: block !important;
+  }
+  
+  .grid > * {
+    margin-bottom: 0.5rem;
+  }
+  
+  /* Ensure borders and shadows are visible */
+  .shadow-lg {
+    box-shadow: none !important;
+    border: 1px solid #e5e7eb !important;
+  }
+  
+  /* Adjust competitive analysis colors for print */
+  .bg-red-50 { background-color: #fef2f2 !important; }
+  .bg-orange-50 { background-color: #fff7ed !important; }
+  .bg-yellow-50 { background-color: #fefce8 !important; }
+  .bg-green-50 { background-color: #f0fdf4 !important; }
+  .bg-blue-50 { background-color: #eff6ff !important; }
+  .bg-purple-50 { background-color: #faf5ff !important; }
+}
