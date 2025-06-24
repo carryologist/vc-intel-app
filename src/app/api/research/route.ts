@@ -1,98 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-
-// Complete mock data function that matches the frontend expectations
-function generateCompleteMockReport(vcFirmName: string, companyName: string) {
-  // Capitalize names properly
-  const properVCName = vcFirmName
-    .split(' ')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-    .join(' ')
-  
-  const properCompanyName = companyName
-    .split(' ')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-    .join(' ')
-
-  return {
-    firmProfile: {
-      name: properVCName,
-      description: `${properVCName} is a leading venture capital firm focused on early-stage technology investments. Known for their hands-on approach and extensive network, they have a strong track record of supporting innovative startups across various sectors.`,
-      founded: "2010",
-      location: "San Francisco, CA",
-      website: `https://www.${properVCName.toLowerCase().replace(/\s+/g, '')}.com`,
-      focusAreas: ["SaaS", "AI/ML", "Fintech", "Enterprise Software", "Developer Tools"],
-      typicalInvestmentSize: "$1M - $10M",
-      stage: ["Seed", "Series A", "Series B"],
-      notableInvestments: [
-        {
-          companyName: "Stripe",
-          amount: "$2M",
-          date: "2011-02-01",
-          round: "Series A",
-          description: "Online payment processing platform",
-          exitStatus: "Public",
-          exitValue: "$95B valuation (2021)"
-        },
-        {
-          companyName: "Airbnb",
-          amount: "$7.2M",
-          date: "2009-11-01",
-          round: "Series A",
-          description: "Home-sharing marketplace platform",
-          exitStatus: "Public",
-          exitValue: "IPO 2020 - $47B market cap"
-        }
-      ],
-      keyPartners: [
-        {
-          name: "Marc Andreessen",
-          title: "Co-Founder & General Partner",
-          focusArea: "Enterprise Software & Developer Tools",
-          experience: "Co-founded Netscape, experienced in scaling tech companies",
-          relevanceReason: `Strong alignment with ${properCompanyName}'s technology focus and growth stage`
-        }
-      ]
-    },
-    recentNews: [
-      {
-        title: `${properVCName} Announces New $200M Fund for AI Startups`,
-        source: "TechCrunch",
-        date: "2024-12-15",
-        url: "https://techcrunch.com/example",
-        summary: `${properVCName} has launched a new fund specifically targeting artificial intelligence and machine learning startups.`
-      }
-    ],
-    recentInvestments: [
-      {
-        companyName: "DataFlow AI",
-        amount: "$5.2M",
-        date: "2024-12-01",
-        round: "Series A",
-        description: "AI-powered data analytics platform for enterprise customers"
-      }
-    ],
-    competitiveAnalysis: [
-      {
-        companyName: "DataFlow AI",
-        similarity: "High",
-        reasoning: `Both ${properCompanyName} and DataFlow AI operate in the data/analytics space, potentially targeting similar enterprise customers.`,
-        potentialConcerns: [
-          "Direct competition for enterprise clients",
-          "Similar technology stack and approach"
-        ]
-      }
-    ],
-    alternativeVCs: [
-      {
-        name: "Innovation Ventures",
-        reasoning: "Strong track record in similar stage companies with complementary portfolio",
-        focusAlignment: `Excellent alignment with ${properCompanyName}'s sector and growth stage`,
-        contactInfo: "partners@innovationvc.com"
-      }
-    ],
-    generatedAt: new Date().toISOString()
-  }
-}
+import { researchVCFirm } from '@/lib/openai'
+import { generateMockReport } from '@/lib/mock-data'
 
 export async function POST(request: NextRequest) {
   try {
@@ -111,15 +19,32 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Generate complete mock data
-    console.log('📝 Generating complete mock report...')
-    const report = generateCompleteMockReport(vcFirmName, companyName)
+    // Check if OpenAI API key is available
+    const hasApiKey = !!process.env.OPENAI_API_KEY
+    console.log('🔑 OpenAI API key present:', hasApiKey)
     
-    console.log('✅ Report generated successfully')
-    console.log('Report structure:', Object.keys(report))
-    
-    // Explicitly return with 200 status
-    return NextResponse.json(report, { status: 200 })
+    if (!process.env.OPENAI_API_KEY) {
+      console.log('📝 Using mock data (no API key)')
+      const report = generateMockReport(vcFirmName, companyName)
+      console.log('✅ Mock report generated successfully')
+      return NextResponse.json(report, { status: 200 })
+    }
+
+    // Use real OpenAI research if API key is available
+    console.log('🤖 Using OpenAI for real research')
+    try {
+      const report = await researchVCFirm(vcFirmName, companyName)
+      console.log('✅ OpenAI report generated successfully')
+      return NextResponse.json(report, { status: 200 })
+    } catch (openaiError) {
+      console.error('❌ OpenAI research failed:', openaiError)
+      
+      // Fallback to mock data if OpenAI fails
+      console.log('🔄 Falling back to mock data due to OpenAI error')
+      const report = generateMockReport(vcFirmName, companyName)
+      console.log('✅ Fallback mock report generated')
+      return NextResponse.json(report, { status: 200 })
+    }
     
   } catch (error) {
     console.error('❌ API Error:', error)
