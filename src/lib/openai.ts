@@ -42,6 +42,9 @@ async function getBestAvailableModel(openai: OpenAI): Promise<string> {
 export async function researchVCFirm(vcFirmName: string, companyName: string) {
   const openai = getOpenAIClient()
   
+  // Debug logging
+  console.log('🔍 Research request:', { vcFirmName, companyName })
+  
   // Determine the best available model
   const model = await getBestAvailableModel(openai)
   
@@ -66,6 +69,8 @@ CRITICAL QUALITY REQUIREMENTS:
 - Empty arrays are acceptable if no real data is available
 
 Research the VC firm "${vcFirmName}" and provide a comprehensive analysis for "${companyName}" who is preparing for investor meetings.
+
+IMPORTANT: You are researching "${vcFirmName}" specifically - NOT any other VC firm. All data must be about "${vcFirmName}" only. Do not confuse this with other firms like Andreessen Horowitz, Sequoia Capital, or any other VC firm.
 
 Please provide a detailed JSON response with the following structure:
 
@@ -155,13 +160,17 @@ Prioritize firms that:
 ABSOLUTE PRIORITY: Accuracy over completeness. It is better to return empty arrays or "Information not publicly available" than to fabricate data. Do not create placeholder names, fake companies, or invented investment amounts. Only include information you are confident is accurate and verifiable.
 `
 
+  // Debug: Log the actual prompt being sent
+  console.log('📝 Prompt preview:', prompt.substring(0, 200) + '...')
+  console.log('🎯 Target firm in prompt:', vcFirmName)
+  
   try {
     const completion = await openai.chat.completions.create({
       model,
       messages: [
         {
           role: "system",
-          content: "You are a senior venture capital research analyst with deep expertise in Silicon Valley investment patterns, portfolio analysis, and startup-VC fit assessment. CRITICAL: You must NEVER fabricate or make up information. If you don't have accurate data, explicitly state 'Information not publicly available' or return empty arrays. Accuracy is more important than completeness. Do not create fake names, companies, or investment amounts."
+          content: `You are a senior venture capital research analyst with deep expertise in Silicon Valley investment patterns, portfolio analysis, and startup-VC fit assessment. CRITICAL: You must NEVER fabricate or make up information. If you don't have accurate data, explicitly state 'Information not publicly available' or return empty arrays. Accuracy is more important than completeness. Do not create fake names, companies, or investment amounts. FOCUS ONLY ON THE SPECIFIC VC FIRM REQUESTED: "${vcFirmName}" - do not mix up with other firms.`
         },
         {
           role: "user",
@@ -185,6 +194,21 @@ ABSOLUTE PRIORITY: Accuracy over completeness. It is better to return empty arra
       }
       
       const parsedData = JSON.parse(jsonMatch[0])
+      
+      // Validate that the response is about the correct firm
+      const returnedFirmName = parsedData.firmProfile?.name?.toLowerCase()
+      const requestedFirmName = vcFirmName.toLowerCase()
+      
+      console.log('🔍 Validation check:')
+      console.log('  Requested:', requestedFirmName)
+      console.log('  Returned:', returnedFirmName)
+      
+      if (returnedFirmName && !returnedFirmName.includes(requestedFirmName.split(' ')[0])) {
+        console.log('⚠️ WARNING: Firm name mismatch detected!')
+        console.log('  This might indicate the AI confused different firms')
+        // Still return the data but log the warning
+      }
+      
       return {
         ...parsedData,
         generatedAt: new Date().toISOString()
