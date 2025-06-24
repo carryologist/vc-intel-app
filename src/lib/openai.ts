@@ -9,8 +9,41 @@ const getOpenAIClient = () => {
   return new OpenAI({ apiKey })
 }
 
+// Function to determine the best available model
+async function getBestAvailableModel(openai: OpenAI): Promise<string> {
+  const modelsToTry = ['gpt-4', 'gpt-3.5-turbo']
+  
+  for (const model of modelsToTry) {
+    try {
+      // Test the model with a simple request
+      await openai.chat.completions.create({
+        model,
+        messages: [{ role: 'user', content: 'test' }],
+        max_tokens: 1
+      })
+      console.log(`✅ Using model: ${model}`)
+      return model
+    } catch (error: any) {
+      if (error?.status === 404 || error?.code === 'model_not_found') {
+        console.log(`❌ Model ${model} not available, trying next...`)
+        continue
+      }
+      // If it's not a model availability error, use this model anyway
+      console.log(`⚠️ Model ${model} test failed but will try to use it:`, error?.message)
+      return model
+    }
+  }
+  
+  // Fallback to gpt-3.5-turbo if all else fails
+  console.log('🔄 Falling back to gpt-3.5-turbo')
+  return 'gpt-3.5-turbo'
+}
+
 export async function researchVCFirm(vcFirmName: string, companyName: string) {
   const openai = getOpenAIClient()
+  
+  // Determine the best available model
+  const model = await getBestAvailableModel(openai)
   
   const prompt = `
 You are a professional venture capital research analyst. Research the VC firm "${vcFirmName}" and provide a comprehensive analysis for "${companyName}" who is preparing for investor meetings.
@@ -89,7 +122,7 @@ Focus on accuracy and provide real, verifiable information. If you cannot find s
 
   try {
     const completion = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
+      model,
       messages: [
         {
           role: "system",
