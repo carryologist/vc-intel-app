@@ -46,14 +46,29 @@ export async function researchVCFirm(vcFirmName: string, companyName: string) {
   const model = await getBestAvailableModel(openai)
   
   const prompt = `
-You are a professional venture capital research analyst. Research the VC firm "${vcFirmName}" and provide a comprehensive analysis for "${companyName}" who is preparing for investor meetings.
+You are a senior venture capital research analyst with 15+ years of experience in Silicon Valley. You have deep knowledge of VC firms, their investment patterns, portfolio companies, and market positioning. You specialize in preparing comprehensive due diligence reports for startup CEOs seeking funding.
+
+RESEARCH GUIDELINES:
+- Focus on factual, verifiable information from the last 12 months for news and investments
+- Prioritize recent investments and news from the past 12 months (2024)
+- For competitive analysis, consider market overlap, customer base, and technology stack
+- Provide specific dollar amounts and dates when available
+- Include partner names and their specific expertise areas
+
+QUALITY REQUIREMENTS:
+- If you cannot find specific information, state "Information not publicly available" rather than guessing
+- Provide sources or indicate confidence level for major claims
+- Ensure all dates are in YYYY-MM-DD format
+- Keep descriptions concise but informative (2-3 sentences max)
+
+Research the VC firm "${vcFirmName}" and provide a comprehensive analysis for "${companyName}" who is preparing for investor meetings.
 
 Please provide a detailed JSON response with the following structure:
 
 {
   "firmProfile": {
     "name": "Exact firm name (properly capitalized)",
-    "description": "Detailed description of the firm",
+    "description": "Detailed description of the firm's investment philosophy and approach",
     "founded": "Year founded",
     "location": "Primary location",
     "website": "Official website URL",
@@ -75,47 +90,63 @@ Please provide a detailed JSON response with the following structure:
       {
         "name": "Partner name",
         "title": "Partner title",
-        "focusArea": "Technology focus area",
-        "experience": "Brief background",
-        "relevanceReason": "Why this partner is relevant to ${companyName}"
+        "focusArea": "Technology focus area most relevant to ${companyName}",
+        "experience": "Brief background and expertise",
+        "relevanceReason": "Why this partner is specifically relevant to ${companyName}'s sector and stage"
       }
     ]
   },
   "recentNews": [
     {
-      "title": "News headline",
+      "title": "News headline from the last 12 months",
       "source": "News source",
       "date": "YYYY-MM-DD",
       "url": "Article URL if available",
-      "summary": "Brief summary of the news"
+      "summary": "Brief summary focusing on relevance to current investment strategy"
     }
   ],
   "recentInvestments": [
     {
-      "companyName": "Portfolio company name",
+      "companyName": "Portfolio company name (last 12 months)",
       "amount": "Investment amount",
       "date": "YYYY-MM-DD",
       "round": "Series A/B/Seed etc",
-      "description": "Brief description of the company"
+      "description": "Brief description focusing on why this investment is relevant to ${companyName}"
     }
   ],
   "competitiveAnalysis": [
     {
       "companyName": "Portfolio company name",
       "similarity": "High/Medium/Low",
-      "reasoning": "Why this company might compete with ${companyName}",
-      "potentialConcerns": ["Array of potential concerns for ${companyName}"]
+      "reasoning": "Detailed analysis of market overlap, customer base similarity, technology stack, and potential conflicts of interest with ${companyName}",
+      "potentialConcerns": ["Specific concerns about competition, market positioning conflicts, or partnership risks"]
     }
   ],
   "alternativeVCs": [
     {
       "name": "Alternative VC firm name",
-      "reasoning": "Why they might be a good alternative",
-      "focusAlignment": "How their focus aligns with ${companyName}",
-      "contactInfo": "Key contact information if publicly available"
+      "reasoning": "Why they might be a better fit - focus on recent investments in similar companies, lack of competing portfolio companies, and active interest in ${companyName}'s sector",
+      "focusAlignment": "How their investment thesis and portfolio strategy aligns with ${companyName}'s business model and growth stage",
+      "contactInfo": "Key partner name and contact information if publicly available"
     }
   ]
 }
+
+COMPETITIVE ANALYSIS CRITERIA:
+Evaluate portfolio companies based on:
+- Direct product/service overlap (High/Medium/Low)
+- Target customer similarity
+- Technology stack overlap
+- Market positioning conflicts
+- Potential partnership opportunities vs. competition risks
+
+ALTERNATIVE VC CRITERIA:
+Prioritize firms that:
+- Have invested in similar stage companies in the last 18 months
+- Show active interest in ${companyName}'s sector
+- Have complementary (not competing) portfolio companies
+- Are currently raising or have recently closed new funds
+- Have partners with relevant industry expertise
 
 Focus on accuracy and provide real, verifiable information. If you cannot find specific information, indicate that clearly rather than making up details.
 `
@@ -126,15 +157,15 @@ Focus on accuracy and provide real, verifiable information. If you cannot find s
       messages: [
         {
           role: "system",
-          content: "You are a professional VC research analyst. Provide accurate, well-researched information in the requested JSON format."
+          content: "You are a senior venture capital research analyst with deep expertise in Silicon Valley investment patterns, portfolio analysis, and startup-VC fit assessment. Provide accurate, well-researched information in the requested JSON format with a focus on actionable insights for startup CEOs."
         },
         {
           role: "user",
           content: prompt
         }
       ],
-      temperature: 0.3,
-      max_tokens: 4000,
+      temperature: 0.2,
+      max_tokens: 4500,
     })
 
     const response = completion.choices[0]?.message?.content
