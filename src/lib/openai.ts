@@ -89,7 +89,7 @@ Focus on accuracy and provide real, verifiable information. If you cannot find s
 
   try {
     const completion = await openai.chat.completions.create({
-      model: "gpt-4",
+      model: "gpt-3.5-turbo",
       messages: [
         {
           role: "system",
