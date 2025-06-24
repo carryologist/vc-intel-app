@@ -55,11 +55,15 @@ RESEARCH GUIDELINES:
 - Provide specific dollar amounts and dates when available
 - Include partner names and their specific expertise areas
 
-QUALITY REQUIREMENTS:
-- If you cannot find specific information, state "Information not publicly available" rather than guessing
-- Provide sources or indicate confidence level for major claims
+CRITICAL QUALITY REQUIREMENTS:
+- NEVER make up or fabricate information - if you don't know something, explicitly state "Information not publicly available"
+- DO NOT create fake names like "Jane Doe" or "John Smith" - use real partner names or state "Partner information not publicly available"
+- DO NOT invent portfolio companies or investment amounts - only include verifiable investments
+- If you cannot find recent data, state "No recent [news/investments] found in public sources" rather than creating fake entries
+- When uncertain about data accuracy, prefix with "According to public sources" or "Reported as"
 - Ensure all dates are in YYYY-MM-DD format
 - Keep descriptions concise but informative (2-3 sentences max)
+- Empty arrays are acceptable if no real data is available
 
 Research the VC firm "${vcFirmName}" and provide a comprehensive analysis for "${companyName}" who is preparing for investor meetings.
 
@@ -148,7 +152,7 @@ Prioritize firms that:
 - Are currently raising or have recently closed new funds
 - Have partners with relevant industry expertise
 
-Focus on accuracy and provide real, verifiable information. If you cannot find specific information, indicate that clearly rather than making up details.
+ABSOLUTE PRIORITY: Accuracy over completeness. It is better to return empty arrays or "Information not publicly available" than to fabricate data. Do not create placeholder names, fake companies, or invented investment amounts. Only include information you are confident is accurate and verifiable.
 `
 
   try {
@@ -157,7 +161,7 @@ Focus on accuracy and provide real, verifiable information. If you cannot find s
       messages: [
         {
           role: "system",
-          content: "You are a senior venture capital research analyst with deep expertise in Silicon Valley investment patterns, portfolio analysis, and startup-VC fit assessment. Provide accurate, well-researched information in the requested JSON format with a focus on actionable insights for startup CEOs."
+          content: "You are a senior venture capital research analyst with deep expertise in Silicon Valley investment patterns, portfolio analysis, and startup-VC fit assessment. CRITICAL: You must NEVER fabricate or make up information. If you don't have accurate data, explicitly state 'Information not publicly available' or return empty arrays. Accuracy is more important than completeness. Do not create fake names, companies, or investment amounts."
         },
         {
           role: "user",

@@ -66,23 +66,29 @@ export function ResearchResults({ report }: ResearchResultsProps) {
           👥 Key Partners
         </h3>
         <div className="space-y-4">
-          {report.firmProfile.keyPartners.map((partner, index) => (
-            <div key={index} className="border border-gray-200 rounded-lg p-4">
-              <div className="flex justify-between items-start mb-2">
-                <h4 className="font-medium text-gray-900">{partner.name}</h4>
-                <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded text-sm">
-                  {partner.title}
-                </span>
+          {report.firmProfile.keyPartners && report.firmProfile.keyPartners.length > 0 ? (
+            report.firmProfile.keyPartners.map((partner, index) => (
+              <div key={index} className="border border-gray-200 rounded-lg p-4">
+                <div className="flex justify-between items-start mb-2">
+                  <h4 className="font-medium text-gray-900">{partner.name}</h4>
+                  <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded text-sm">
+                    {partner.title}
+                  </span>
+                </div>
+                <p className="text-sm text-blue-600 mb-2">{partner.focusArea}</p>
+                <p className="text-gray-700 mb-2">{partner.experience}</p>
+                {partner.relevanceReason && (
+                  <p className="text-sm text-green-700 bg-green-50 p-2 rounded">
+                    <strong>Why relevant:</strong> {partner.relevanceReason}
+                  </p>
+                )}
               </div>
-              <p className="text-sm text-blue-600 mb-2">{partner.focusArea}</p>
-              <p className="text-gray-700 mb-2">{partner.experience}</p>
-              {partner.relevanceReason && (
-                <p className="text-sm text-green-700 bg-green-50 p-2 rounded">
-                  <strong>Why relevant:</strong> {partner.relevanceReason}
-                </p>
-              )}
+            ))
+          ) : (
+            <div className="text-center py-8 text-gray-500">
+              <p>Partner information not publicly available</p>
             </div>
-          ))}
+          )}
         </div>
       </div>
 
@@ -92,34 +98,40 @@ export function ResearchResults({ report }: ResearchResultsProps) {
           🏆 Notable Portfolio Investments
         </h3>
         <div className="grid md:grid-cols-2 gap-4">
-          {report.firmProfile.notableInvestments.map((investment, index) => (
-            <div key={index} className="border border-gray-200 rounded-lg p-4">
-              <div className="flex justify-between items-start mb-2">
-                <h4 className="font-medium text-gray-900">{investment.companyName}</h4>
-                <span className="bg-green-100 text-green-800 px-2 py-1 rounded text-sm">
-                  {investment.amount}
-                </span>
-              </div>
-              <p className="text-sm text-gray-600 mb-2">
-                {investment.round} • {new Date(investment.date).toLocaleDateString()}
-              </p>
-              <p className="text-gray-700 mb-2">{investment.description}</p>
-              {investment.exitStatus && (
-                <div className="mt-2">
-                  <span className={`px-2 py-1 rounded text-sm ${
-                    investment.exitStatus === 'Public' ? 'bg-blue-100 text-blue-800' :
-                    investment.exitStatus === 'Acquired' ? 'bg-purple-100 text-purple-800' :
-                    'bg-gray-100 text-gray-800'
-                  }`}>
-                    {investment.exitStatus}
+          {report.firmProfile.notableInvestments && report.firmProfile.notableInvestments.length > 0 ? (
+            report.firmProfile.notableInvestments.map((investment, index) => (
+              <div key={index} className="border border-gray-200 rounded-lg p-4">
+                <div className="flex justify-between items-start mb-2">
+                  <h4 className="font-medium text-gray-900">{investment.companyName}</h4>
+                  <span className="bg-green-100 text-green-800 px-2 py-1 rounded text-sm">
+                    {investment.amount}
                   </span>
-                  {investment.exitValue && (
-                    <p className="text-sm text-gray-600 mt-1">{investment.exitValue}</p>
-                  )}
                 </div>
-              )}
+                <p className="text-sm text-gray-600 mb-2">
+                  {investment.round} • {new Date(investment.date).toLocaleDateString()}
+                </p>
+                <p className="text-gray-700 mb-2">{investment.description}</p>
+                {investment.exitStatus && (
+                  <div className="mt-2">
+                    <span className={`px-2 py-1 rounded text-sm ${
+                      investment.exitStatus === 'Public' ? 'bg-blue-100 text-blue-800' :
+                      investment.exitStatus === 'Acquired' ? 'bg-purple-100 text-purple-800' :
+                      'bg-gray-100 text-gray-800'
+                    }`}>
+                      {investment.exitStatus}
+                    </span>
+                    {investment.exitValue && (
+                      <p className="text-sm text-gray-600 mt-1">{investment.exitValue}</p>
+                    )}
+                  </div>
+                )}
+              </div>
+            ))
+          ) : (
+            <div className="text-center py-8 text-gray-500">
+              <p>Notable investment information not publicly available</p>
             </div>
-          ))}
+          )}
         </div>
       </div>
 
