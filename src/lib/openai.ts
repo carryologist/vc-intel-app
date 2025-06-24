@@ -11,7 +11,7 @@ const getOpenAIClient = () => {
 
 // Function to determine the best available model
 async function getBestAvailableModel(openai: OpenAI): Promise<string> {
-  const modelsToTry = ['gpt-4', 'gpt-3.5-turbo']
+  const modelsToTry = ['gpt-4o', 'gpt-4o-mini', 'gpt-3.5-turbo']
   
   for (const model of modelsToTry) {
     try {
