@@ -2,25 +2,51 @@ import axios from 'axios'
 
 // Initialize Perplexity client only when API key is available
 const getPerplexityClient = () => {
+  console.log('🔧 [DEBUG] Initializing Perplexity client...')
+  
   const apiKey = process.env.PERPLEXITY_API_KEY || process.env.OPENAI_API_KEY
+  
+  console.log('🔧 [DEBUG] Environment check:')
+  console.log('  - PERPLEXITY_API_KEY exists:', !!process.env.PERPLEXITY_API_KEY)
+  console.log('  - OPENAI_API_KEY exists:', !!process.env.OPENAI_API_KEY)
+  console.log('  - Using key type:', process.env.PERPLEXITY_API_KEY ? 'PERPLEXITY_API_KEY' : 'OPENAI_API_KEY')
+  console.log('  - Key length:', apiKey ? apiKey.length : 'undefined')
+  console.log('  - Key prefix:', apiKey ? apiKey.substring(0, 8) + '...' : 'undefined')
+  
   if (!apiKey) {
+    console.error('❌ [ERROR] No API key found in environment variables')
     throw new Error('Perplexity API key not configured')
   }
   
-  return axios.create({
+  const client = axios.create({
     baseURL: 'https://api.perplexity.ai',
     headers: {
       'Authorization': `Bearer ${apiKey}`,
       'Content-Type': 'application/json'
-    }
+    },
+    timeout: 60000 // 60 second timeout
   })
+  
+  console.log('✅ [DEBUG] Perplexity client initialized successfully')
+  return client
 }
 
 export async function researchVCFirm(vcFirmName: string, companyName: string, contactName?: string) {
-  const client = getPerplexityClient()
+  console.log('🚀 [DEBUG] Starting researchVCFirm function')
+  console.log('📊 [DEBUG] Input parameters:')
+  console.log('  - vcFirmName:', vcFirmName)
+  console.log('  - companyName:', companyName)
+  console.log('  - contactName:', contactName)
+  console.log('  - Environment:', process.env.NODE_ENV)
+  console.log('  - Runtime:', typeof window !== 'undefined' ? 'client' : 'server')
   
-  // Debug logging
-  console.log('🔍 Research request:', { vcFirmName, companyName, contactName })
+  let client
+  try {
+    client = getPerplexityClient()
+  } catch (error) {
+    console.error('❌ [ERROR] Failed to initialize Perplexity client:', error)
+    throw error
+  }
   
   const prompt = `
 You are a venture capital research analyst. You MUST use web search to find ONLY verified, factual information about the specific VC firm requested.
@@ -187,18 +213,18 @@ Prioritize firms that:
 ABSOLUTE PRIORITY: Accuracy over completeness. It is better to return empty arrays or "Information not publicly available" than to fabricate data. Do not create placeholder names, fake companies, or invented investment amounts. Only include information you found through web search with proper citations.
 `
 
-  // Debug: Log the actual prompt being sent
-  console.log('📝 Prompt preview:', prompt.substring(0, 200) + '...')
-  console.log('🎯 Target firm in prompt:', vcFirmName)
+  console.log('📝 [DEBUG] Prompt details:')
+  console.log('  - Prompt length:', prompt.length)
+  console.log('  - Target firm in prompt:', vcFirmName)
+  console.log('  - Prompt preview (first 200 chars):', prompt.substring(0, 200) + '...')
   
-  try {
-    const response = await client.post('/chat/completions', {
-      model: 'sonar', // Updated to use the current model name
-      messages: [
-        {
-          role: "system",
-          content: `You are a venture capital research analyst with access to real-time web search. 
-          
+  const requestPayload = {
+    model: 'sonar',
+    messages: [
+      {
+        role: "system",
+        content: `You are a venture capital research analyst with access to real-time web search. 
+        
 🚨 ABSOLUTE REQUIREMENTS 🚨
 1. ONLY research the EXACT firm: "${vcFirmName}"
 2. Use web search to verify ALL information
@@ -209,57 +235,112 @@ ABSOLUTE PRIORITY: Accuracy over completeness. It is better to return empty arra
 7. Empty sections are better than fake information
 
 FIRM VALIDATION: You are researching "${vcFirmName}" - if you find information about a different firm, DO NOT include it. Only include information specifically about "${vcFirmName}".`
-        },
-        {
-          role: "user",
-          content: prompt
-        }
-      ],
-      temperature: 0.1,
-      max_tokens: 4500,
-      return_citations: true,
-      search_domain_filter: ["techcrunch.com", "crunchbase.com", "pitchbook.com", "bloomberg.com", "reuters.com", "wsj.com", "forbes.com", "venturebeat.com"],
-      search_recency_filter: "month"
-      // Removed potentially problematic parameters like logprobs, top_logprobs, stream_options
-    })
-
+      },
+      {
+        role: "user",
+        content: prompt
+      }
+    ],
+    temperature: 0.1,
+    max_tokens: 4500,
+    return_citations: true,
+    search_domain_filter: ["techcrunch.com", "crunchbase.com", "pitchbook.com", "bloomberg.com", "reuters.com", "wsj.com", "forbes.com", "venturebeat.com"],
+    search_recency_filter: "month"
+  }
+  
+  console.log('📤 [DEBUG] Request payload:')
+  console.log('  - Model:', requestPayload.model)
+  console.log('  - Messages count:', requestPayload.messages.length)
+  console.log('  - Temperature:', requestPayload.temperature)
+  console.log('  - Max tokens:', requestPayload.max_tokens)
+  console.log('  - Return citations:', requestPayload.return_citations)
+  console.log('  - Search domain filter:', requestPayload.search_domain_filter)
+  console.log('  - Search recency filter:', requestPayload.search_recency_filter)
+  console.log('  - System message length:', requestPayload.messages[0].content.length)
+  console.log('  - User message length:', requestPayload.messages[1].content.length)
+  
+  const startTime = Date.now()
+  console.log('⏱️ [DEBUG] Starting API request at:', new Date().toISOString())
+  
+  try {
+    console.log('🌐 [DEBUG] Making request to Perplexity API...')
+    console.log('  - URL: https://api.perplexity.ai/chat/completions')
+    console.log('  - Method: POST')
+    
+    const response = await client.post('/chat/completions', requestPayload)
+    
+    const duration = Date.now() - startTime
+    console.log('✅ [DEBUG] API request completed successfully')
+    console.log('  - Duration:', duration + 'ms')
+    console.log('  - Status:', response.status)
+    console.log('  - Status text:', response.statusText)
+    console.log('  - Headers:', JSON.stringify(response.headers, null, 2))
+    
     const responseData = response.data
+    console.log('📥 [DEBUG] Response data structure:')
+    console.log('  - Response keys:', Object.keys(responseData))
+    console.log('  - Choices count:', responseData.choices?.length)
+    console.log('  - Usage:', responseData.usage)
+    console.log('  - Citations count:', responseData.citations?.length)
+    
     const content = responseData.choices[0]?.message?.content
+    console.log('📄 [DEBUG] Response content:')
+    console.log('  - Content exists:', !!content)
+    console.log('  - Content length:', content?.length)
+    console.log('  - Content preview (first 500 chars):', content?.substring(0, 500) + '...')
     
     if (!content) {
+      console.error('❌ [ERROR] Empty response content from Perplexity')
+      console.error('  - Full response data:', JSON.stringify(responseData, null, 2))
       throw new Error('Empty response from Perplexity')
     }
     
+    console.log('🔍 [DEBUG] Attempting to extract JSON from response...')
     // Extract JSON from response
     const jsonMatch = content.match(/\{[\s\S]*\}/)
     if (!jsonMatch) {
-      console.error('No JSON found in Perplexity response')
+      console.error('❌ [ERROR] No JSON found in Perplexity response')
+      console.error('  - Full content:', content)
       throw new Error('Invalid response format from Perplexity')
     }
     
+    console.log('✅ [DEBUG] JSON pattern found in response')
+    console.log('  - JSON string length:', jsonMatch[0].length)
+    console.log('  - JSON preview (first 200 chars):', jsonMatch[0].substring(0, 200) + '...')
+    
     try {
+      console.log('🔄 [DEBUG] Parsing JSON response...')
       const parsedData = JSON.parse(jsonMatch[0])
+      console.log('✅ [DEBUG] JSON parsed successfully')
+      console.log('  - Parsed data keys:', Object.keys(parsedData))
+      console.log('  - Firm profile exists:', !!parsedData.firmProfile)
+      console.log('  - Firm name in response:', parsedData.firmProfile?.name)
       
       // Validate that the response is about the correct firm
       const returnedFirmName = parsedData.firmProfile?.name?.toLowerCase()
       const requestedFirmName = vcFirmName.toLowerCase()
       
-      console.log('🔍 Validation check:')
-      console.log('  Requested:', requestedFirmName)
-      console.log('  Returned:', returnedFirmName)
+      console.log('🔍 [DEBUG] Validation check:')
+      console.log('  - Requested firm:', requestedFirmName)
+      console.log('  - Returned firm:', returnedFirmName)
       
       // Check for common wrong firms that AI might confuse
       const wrongFirms = ['andreessen horowitz', 'a16z', 'sequoia', 'kleiner perkins', 'accel']
       const isWrongFirm = wrongFirms.some(wrong => returnedFirmName?.includes(wrong))
       
       if (isWrongFirm || (returnedFirmName && !returnedFirmName.includes(requestedFirmName.split(' ')[0]))) {
-        console.log('❌ ERROR: Wrong firm detected in response!')
-        console.log('  AI returned information about a different firm')
+        console.log('❌ [ERROR] Wrong firm detected in response!')
+        console.log('  - AI returned information about a different firm')
+        console.log('  - Expected:', requestedFirmName)
+        console.log('  - Got:', returnedFirmName)
         throw new Error(`AI returned information about wrong firm: ${returnedFirmName}. Expected: ${requestedFirmName}`)
       }
       
       // Check for fabricated contacts (common hallucination patterns)
       const contacts = parsedData.firmProfile?.keyContacts || []
+      console.log('👥 [DEBUG] Checking contacts for fabrication...')
+      console.log('  - Contacts count:', contacts.length)
+      
       const suspiciousContacts = contacts.filter((contact: any) => 
         contact.name?.toLowerCase().includes('marc andreessen') ||
         contact.name?.toLowerCase().includes('ben horowitz') ||
@@ -268,31 +349,96 @@ FIRM VALIDATION: You are researching "${vcFirmName}" - if you find information a
       )
       
       if (suspiciousContacts.length > 0) {
-        console.log('❌ ERROR: Fabricated contacts detected!')
-        console.log('  Suspicious contacts:', suspiciousContacts.map((c: any) => c.name))
+        console.log('❌ [ERROR] Fabricated contacts detected!')
+        console.log('  - Suspicious contacts:', suspiciousContacts.map((c: any) => c.name))
         throw new Error('AI fabricated contacts from other VC firms')
       }
       
+      console.log('✅ [DEBUG] Validation passed - no fabricated contacts detected')
+      
       // Add citations from Perplexity response if available
       const citations = responseData.citations || []
+      console.log('📚 [DEBUG] Citations processing:')
+      console.log('  - Citations count:', citations.length)
       
-      return {
+      const finalResult = {
         ...parsedData,
         generatedAt: new Date().toISOString(),
         citations: citations,
         model: 'sonar',
-        provider: 'Perplexity'
+        provider: 'Perplexity',
+        debugInfo: {
+          requestDuration: duration,
+          responseSize: content.length,
+          citationsCount: citations.length,
+          timestamp: new Date().toISOString()
+        }
       }
+      
+      console.log('🎉 [DEBUG] Research completed successfully!')
+      console.log('  - Final result keys:', Object.keys(finalResult))
+      console.log('  - Total processing time:', Date.now() - startTime + 'ms')
+      
+      return finalResult
+      
     } catch (parseError) {
-      console.error('Failed to parse Perplexity response:', parseError)
+      console.error('❌ [ERROR] Failed to parse Perplexity response JSON')
+      console.error('  - Parse error:', parseError)
+      console.error('  - JSON string that failed to parse:', jsonMatch[0])
       throw new Error('Failed to parse research results')
     }
+    
   } catch (error) {
-    console.error('Perplexity API error:', error)
+    const duration = Date.now() - startTime
+    console.error('❌ [ERROR] Perplexity API request failed')
+    console.error('  - Duration before failure:', duration + 'ms')
+    console.error('  - Error type:', error.constructor.name)
+    console.error('  - Error message:', error.message)
+    
     if (axios.isAxiosError(error)) {
-      console.error('Response data:', error.response?.data)
-      console.error('Response status:', error.response?.status)
+      console.error('🌐 [ERROR] Axios error details:')
+      console.error('  - Status:', error.response?.status)
+      console.error('  - Status text:', error.response?.statusText)
+      console.error('  - Headers:', JSON.stringify(error.response?.headers, null, 2))
+      console.error('  - Response data:', JSON.stringify(error.response?.data, null, 2))
+      console.error('  - Request config:', {
+        url: error.config?.url,
+        method: error.config?.method,
+        baseURL: error.config?.baseURL,
+        timeout: error.config?.timeout,
+        headers: {
+          ...error.config?.headers,
+          Authorization: error.config?.headers?.Authorization ? '[REDACTED]' : undefined
+        }
+      })
+      
+      if (error.code) {
+        console.error('  - Error code:', error.code)
+      }
+      
+      if (error.response?.status === 400) {
+        console.error('🚨 [ERROR] 400 Bad Request - This is likely a parameter issue')
+        console.error('  - Check if model name is correct')
+        console.error('  - Check if all parameters are supported by Perplexity API')
+        console.error('  - Request payload that caused 400:', JSON.stringify(requestPayload, null, 2))
+      }
+      
+      if (error.response?.status === 401) {
+        console.error('🔑 [ERROR] 401 Unauthorized - API key issue')
+        console.error('  - Check if API key is valid')
+        console.error('  - Check if API key has correct permissions')
+      }
+      
+      if (error.response?.status === 429) {
+        console.error('⏱️ [ERROR] 429 Rate Limited')
+        console.error('  - Too many requests to Perplexity API')
+        console.error('  - Consider implementing retry logic with backoff')
+      }
+    } else {
+      console.error('🔧 [ERROR] Non-Axios error:')
+      console.error('  - Error stack:', error.stack)
     }
-    throw new Error('Failed to research VC firm')
+    
+    throw new Error(`Failed to research VC firm: ${error.message}`)
   }
 }
