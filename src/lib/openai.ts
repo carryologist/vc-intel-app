@@ -11,7 +11,7 @@ const getOpenAIClient = () => {
 
 // Function to determine the best available model
 async function getBestAvailableModel(openai: OpenAI): Promise<string> {
-  const modelsToTry = ['gpt-4o', 'gpt-4o-mini', 'gpt-3.5-turbo']
+  const modelsToTry = ['gpt-4o', 'gpt-4-turbo', 'gpt-4', 'gpt-4o-mini', 'gpt-3.5-turbo']
   
   for (const model of modelsToTry) {
     try {
@@ -59,16 +59,31 @@ RESEARCH GUIDELINES:
 - Provide specific dollar amounts and dates when available
 - Include partner names and their specific expertise areas
 
-CRITICAL QUALITY REQUIREMENTS:
-- NEVER make up or fabricate information - if you don't know something, explicitly state "Information not publicly available"
-- DO NOT create fake names like "Jane Doe" or "John Smith" - use real partner names or state "Partner information not publicly available"
-- DO NOT invent portfolio companies or investment amounts - only include verifiable investments
-- DO NOT fabricate URLs - only include actual, verifiable URLs. If you don't have the real URL, omit the "url" field entirely
-- If you cannot find recent data, state "No recent [news/investments] found in public sources" rather than creating fake entries
-- When uncertain about data accuracy, prefix with "According to public sources" or "Reported as"
-- Ensure all dates are in YYYY-MM-DD format
-- Keep descriptions concise but informative (2-3 sentences max)
-- Empty arrays are acceptable if no real data is available
+🚨 CRITICAL ANTI-HALLUCINATION REQUIREMENTS 🚨
+
+You are STRICTLY FORBIDDEN from fabricating, inventing, or making up ANY information. This is a professional tool used for real investor meetings.
+
+❌ NEVER FABRICATE:
+- News articles or headlines that don't exist
+- Investment amounts or dates you're not certain about
+- Partner names or titles
+- Company valuations or exit information
+- URLs or web links
+- Portfolio companies or investment details
+- Recent news or press releases
+
+✅ REQUIRED BEHAVIOR:
+- If you don't have verified information, explicitly state "Information not publicly available"
+- Use ONLY information from your training data that you're confident about
+- When uncertain, use phrases like "According to available sources" or "Reported as"
+- Empty arrays/sections are BETTER than fabricated information
+- If no recent news exists, return empty news array rather than inventing articles
+- Only include URLs if you're absolutely certain they exist
+- Dates must be in YYYY-MM-DD format and be realistic
+- Keep descriptions factual and concise (2-3 sentences max)
+
+⚠️ VERIFICATION STANDARD:
+Before including ANY piece of information, ask yourself: "Am I certain this is real and accurate?" If not, omit it.
 
 Research the VC firm "${vcFirmName}" and provide a comprehensive analysis for "${companyName}" who is preparing for investor meetings.${contactName ? `
 
@@ -117,13 +132,14 @@ Please provide a detailed JSON response with the following structure:
   },
   "recentNews": [
     {
-      "title": "News headline from the last 12 months",
-      "source": "News source",
-      "date": "YYYY-MM-DD",
+      "title": "ONLY real news headlines you're certain exist - NO FABRICATION",
+      "source": "Actual news source (TechCrunch, Forbes, etc.)",
+      "date": "YYYY-MM-DD (must be realistic and recent)",
       "url": "ONLY include if you have the actual, verifiable URL - otherwise omit this field entirely",
-      "summary": "Brief summary focusing on relevance to current investment strategy"
+      "summary": "Brief factual summary - NO SPECULATION"
     }
   ],
+  "NOTE": "If you cannot find verified recent news about this VC firm, return an empty recentNews array. DO NOT invent news articles.",
   "recentInvestments": [
     {
       "companyName": "Portfolio company name (last 12 months)",
@@ -190,14 +206,14 @@ ABSOLUTE PRIORITY: Accuracy over completeness. It is better to return empty arra
       messages: [
         {
           role: "system",
-          content: `You are a senior venture capital research analyst with deep expertise in Silicon Valley investment patterns, portfolio analysis, and startup-VC fit assessment. CRITICAL: You must NEVER fabricate or make up information. If you don't have accurate data, explicitly state 'Information not publicly available' or return empty arrays. Accuracy is more important than completeness. Do not create fake names, companies, or investment amounts. FOCUS ONLY ON THE SPECIFIC VC FIRM REQUESTED: "${vcFirmName}" - do not mix up with other firms.`
+          content: `You are a senior venture capital research analyst. 🚨 CRITICAL ANTI-HALLUCINATION DIRECTIVE 🚨: You are ABSOLUTELY FORBIDDEN from fabricating ANY information. This tool is used for real investor meetings where accuracy is paramount. If you don't have verified information about "${vcFirmName}", you MUST return empty arrays or state "Information not publicly available". NEVER invent news articles, investment amounts, partner names, or company details. Empty sections are infinitely better than fabricated information. FOCUS ONLY ON: "${vcFirmName}" - do not confuse with other firms.`
         },
         {
           role: "user",
           content: prompt
         }
       ],
-      temperature: 0.2,
+      temperature: 0.1,
       max_tokens: 4500,
     })
 

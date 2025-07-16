@@ -82,7 +82,7 @@ export default function Home() {
       <footer className="bg-gray-50 border-t border-gray-200 py-8 mt-16 no-print">
         <div className="container mx-auto px-4 text-center">
           <p className="text-sm text-gray-600">
-            Built by{' '}
+            Imagined by{' '}
             <a 
               href="https://github.com/carryologist" 
               target="_blank" 
@@ -91,7 +91,7 @@ export default function Home() {
             >
               carryologist
             </a>
-            {' '}with help from{' '}
+            . Built by{' '}
             <a 
               href="https://blink.so" 
               target="_blank" 
@@ -100,6 +100,7 @@ export default function Home() {
             >
               Blink
             </a>
+            .
           </p>
         </div>
       </footer>
