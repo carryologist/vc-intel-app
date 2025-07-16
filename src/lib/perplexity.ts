@@ -193,7 +193,7 @@ ABSOLUTE PRIORITY: Accuracy over completeness. It is better to return empty arra
   
   try {
     const response = await client.post('/chat/completions', {
-      model: 'llama-3.1-sonar-large-128k-online',
+      model: 'sonar',
       messages: [
         {
           role: "system",
@@ -279,7 +279,7 @@ FIRM VALIDATION: You are researching "${vcFirmName}" - if you find information a
         ...parsedData,
         generatedAt: new Date().toISOString(),
         citations: citations,
-        model: 'llama-3.1-sonar-large-128k-online',
+        model: 'sonar',
         provider: 'Perplexity'
       }
     } catch (parseError) {
