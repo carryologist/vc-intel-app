@@ -10,7 +10,7 @@ export default function Home() {
   const [report, setReport] = useState<VCResearchReport | null>(null)
   const [loading, setLoading] = useState(false)
 
-  const handleResearch = async (vcFirmName: string, companyName: string) => {
+  const handleResearch = async (vcFirmName: string, companyName: string, contactName?: string) => {
     setLoading(true)
     try {
       const response = await fetch('/api/research', {
@@ -18,7 +18,7 @@ export default function Home() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ vcFirmName, companyName }),
+        body: JSON.stringify({ vcFirmName, companyName, contactName }),
       })
 
       if (!response.ok) {

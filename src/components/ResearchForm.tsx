@@ -3,18 +3,19 @@
 import { useState } from 'react'
 
 interface ResearchFormProps {
-  onSubmit: (vcFirmName: string, companyName: string) => void
+  onSubmit: (vcFirmName: string, companyName: string, contactName?: string) => void
   loading: boolean
 }
 
 export function ResearchForm({ onSubmit, loading }: ResearchFormProps) {
   const [vcFirmName, setVcFirmName] = useState('')
   const [companyName, setCompanyName] = useState('')
+  const [contactName, setContactName] = useState('')
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (vcFirmName.trim() && companyName.trim()) {
-      onSubmit(vcFirmName.trim(), companyName.trim())
+      onSubmit(vcFirmName.trim(), companyName.trim(), contactName.trim() || undefined)
     }
   }
 
@@ -55,6 +56,24 @@ export function ResearchForm({ onSubmit, loading }: ResearchFormProps) {
             required
             disabled={loading}
           />
+        </div>
+
+        <div>
+          <label htmlFor="contact" className="block text-sm font-medium text-gray-700 mb-2">
+            Contact Person (Optional)
+          </label>
+          <input
+            type="text"
+            id="contact"
+            value={contactName}
+            onChange={(e) => setContactName(e.target.value)}
+            placeholder="e.g., John Smith, Partner"
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            disabled={loading}
+          />
+          <p className="text-sm text-gray-500 mt-1">
+            Enter the name and title of the person you're meeting with for personalized insights
+          </p>
         </div>
 
         <button

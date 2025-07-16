@@ -8,12 +8,14 @@ export interface NotableInvestment {
   exitValue?: string;
 }
 
-export interface KeyPartner {
+export interface KeyContact {
   name: string;
   title: string;
   focusArea: string;
   experience: string;
   relevanceReason?: string;
+  isUserContact?: boolean;
+  contactInfo?: string;
 }
 
 export interface VCFirmProfile {
@@ -26,7 +28,7 @@ export interface VCFirmProfile {
   typicalInvestmentSize: string;
   stage: string[];
   notableInvestments: NotableInvestment[];
-  keyPartners: KeyPartner[];
+  keyContacts: KeyContact[];
 }
 
 export interface RecentNews {
@@ -71,4 +73,5 @@ export interface VCResearchReport {
 export interface ResearchRequest {
   vcFirmName: string;
   companyName: string;
+  contactName?: string;
 }

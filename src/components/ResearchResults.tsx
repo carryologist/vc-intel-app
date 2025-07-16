@@ -60,33 +60,54 @@ export function ResearchResults({ report }: ResearchResultsProps) {
         </div>
       </div>
 
-      {/* Key Partners */}
+      {/* Key Contacts */}
       <div className="bg-white rounded-lg shadow-lg p-6 print-section print-bg">
         <h3 className="text-xl font-semibold text-gray-900 mb-4">
-          👥 Key Partners
+          👥 Key Contacts
         </h3>
         <div className="space-y-4">
-          {report.firmProfile.keyPartners && report.firmProfile.keyPartners.length > 0 ? (
-            report.firmProfile.keyPartners.map((partner, index) => (
-              <div key={index} className="border border-gray-200 rounded-lg p-4">
+          {report.firmProfile.keyContacts && report.firmProfile.keyContacts.length > 0 ? (
+            report.firmProfile.keyContacts.map((contact, index) => (
+              <div key={index} className={`border rounded-lg p-4 ${
+                contact.isUserContact 
+                  ? 'border-blue-300 bg-blue-50' 
+                  : 'border-gray-200'
+              }`}>
                 <div className="flex justify-between items-start mb-2">
-                  <h4 className="font-medium text-gray-900">{partner.name}</h4>
+                  <div className="flex items-center gap-2">
+                    <h4 className="font-medium text-gray-900">{contact.name}</h4>
+                    {contact.isUserContact && (
+                      <span className="bg-blue-600 text-white px-2 py-1 rounded text-xs">
+                        Your Contact
+                      </span>
+                    )}
+                  </div>
                   <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded text-sm">
-                    {partner.title}
+                    {contact.title}
                   </span>
                 </div>
-                <p className="text-sm text-blue-600 mb-2">{partner.focusArea}</p>
-                <p className="text-gray-700 mb-2">{partner.experience}</p>
-                {partner.relevanceReason && (
-                  <p className="text-sm text-green-700 bg-green-50 p-2 rounded">
-                    <strong>Why relevant:</strong> {partner.relevanceReason}
+                <p className="text-sm text-blue-600 mb-2">{contact.focusArea}</p>
+                <p className="text-gray-700 mb-2">{contact.experience}</p>
+                {contact.contactInfo && (
+                  <p className="text-sm text-gray-600 mb-2">
+                    <strong>Contact:</strong> {contact.contactInfo}
                   </p>
+                )}
+                {contact.relevanceReason && (
+                  <p className="text-sm text-green-700 bg-green-50 p-2 rounded">
+                    <strong>Why relevant:</strong> {contact.relevanceReason}
+                  </p>
+                )}
+                {contact.isUserContact && !contact.contactInfo && (
+                  <div className="text-sm text-amber-700 bg-amber-50 p-2 rounded mt-2">
+                    <strong>Note:</strong> Limited public information available for this contact. Consider reaching out through LinkedIn or the firm's website.
+                  </div>
                 )}
               </div>
             ))
           ) : (
             <div className="text-center py-8 text-gray-500">
-              <p>Partner information not publicly available</p>
+              <p>Contact information not publicly available</p>
             </div>
           )}
         </div>

@@ -1,4 +1,4 @@
-import { VCResearchReport } from '@/types'
+import { VCResearchReport, KeyContact } from '@/types'
 
 // Helper function to properly capitalize names
 function capitalizeCompanyName(name: string): string {
@@ -8,9 +8,27 @@ function capitalizeCompanyName(name: string): string {
     .join(' ')
 }
 
-export function generateMockReport(vcFirmName: string, companyName: string): VCResearchReport {
+export function generateMockReport(vcFirmName: string, companyName: string, contactName?: string): VCResearchReport {
   const properVCName = capitalizeCompanyName(vcFirmName)
   const properCompanyName = capitalizeCompanyName(companyName)
+  
+  // Parse contact name if provided
+  let userContact: KeyContact | null = null
+  if (contactName && contactName.trim()) {
+    const contactParts = contactName.trim().split(',')
+    const name = contactParts[0].trim()
+    const title = contactParts.length > 1 ? contactParts[1].trim() : 'Partner'
+    
+    userContact = {
+      name: name,
+      title: title,
+      focusArea: "Investment Focus TBD",
+      experience: "Limited public information available",
+      relevanceReason: `Your meeting contact at ${properVCName}`,
+      isUserContact: true
+    }
+  }
+  
   return {
     firmProfile: {
       name: properVCName,
@@ -113,29 +131,38 @@ export function generateMockReport(vcFirmName: string, companyName: string): VCR
           exitValue: "IPO 2015 - $200B+ peak market cap (2021)"
         }
       ],
-      keyPartners: [
-        {
-          name: "Marc Andreessen",
-          title: "Co-Founder & General Partner",
-          focusArea: "Enterprise Software & Developer Tools",
-          experience: "Co-founded Netscape, experienced in scaling tech companies",
-          relevanceReason: `Strong alignment with ${properCompanyName}'s technology focus and growth stage`
-        },
-        {
-          name: "Ben Horowitz",
-          title: "Co-Founder & General Partner",
-          focusArea: "Enterprise Software & SaaS",
-          experience: "Former CEO of Opsware, expert in enterprise software scaling",
-          relevanceReason: "Deep experience in enterprise software go-to-market strategies"
-        },
-        {
-          name: "Sarah Wang",
-          title: "General Partner",
-          focusArea: "AI/ML & Data Infrastructure",
-          experience: "Former Google executive, AI/ML specialist",
-          relevanceReason: "Perfect match for AI-driven or data-intensive companies"
-        }
-      ]
+      keyContacts: (() => {
+        const baseContacts: KeyContact[] = [
+          {
+            name: "Marc Andreessen",
+            title: "Co-Founder & General Partner",
+            focusArea: "Enterprise Software & Developer Tools",
+            experience: "Co-founded Netscape, experienced in scaling tech companies",
+            relevanceReason: `Strong alignment with ${properCompanyName}'s technology focus and growth stage`,
+            isUserContact: false,
+            contactInfo: "marc@a16z.com"
+          },
+          {
+            name: "Ben Horowitz",
+            title: "Co-Founder & General Partner",
+            focusArea: "Enterprise Software & SaaS",
+            experience: "Former CEO of Opsware, expert in enterprise software scaling",
+            relevanceReason: "Deep experience in enterprise software go-to-market strategies",
+            isUserContact: false,
+            contactInfo: "ben@a16z.com"
+          },
+          {
+            name: "Sarah Wang",
+            title: "General Partner",
+            focusArea: "AI/ML & Data Infrastructure",
+            experience: "Former Google executive, AI/ML specialist",
+            relevanceReason: "Perfect match for AI-driven or data-intensive companies",
+            isUserContact: false,
+            contactInfo: "sarah@a16z.com"
+          }
+        ]
+        return userContact ? [userContact, ...baseContacts] : baseContacts
+      })()
     },
     recentNews: [
       {

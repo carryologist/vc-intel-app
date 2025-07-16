@@ -7,9 +7,9 @@ export async function POST(request: NextRequest) {
     console.log('=== API Route Called ===')
     
     const body = await request.json()
-    const { vcFirmName, companyName } = body
+    const { vcFirmName, companyName, contactName } = body
     
-    console.log('Request data:', { vcFirmName, companyName })
+    console.log('Request data:', { vcFirmName, companyName, contactName })
 
     if (!vcFirmName || !companyName) {
       console.log('❌ Missing required fields')
@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
     
     if (!process.env.OPENAI_API_KEY) {
       console.log('📝 Using mock data (no API key)')
-      const report = generateMockReport(vcFirmName, companyName)
+      const report = generateMockReport(vcFirmName, companyName, contactName)
       console.log('✅ Mock report generated successfully')
       return NextResponse.json(report, { status: 200 })
     }
@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
     // Use real OpenAI research if API key is available
     console.log('🤖 Using OpenAI for real research')
     try {
-      const report = await researchVCFirm(vcFirmName, companyName)
+      const report = await researchVCFirm(vcFirmName, companyName, contactName)
       console.log('✅ OpenAI report generated successfully')
       return NextResponse.json(report, { status: 200 })
     } catch (openaiError) {
@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
       
       // Fallback to mock data if OpenAI fails
       console.log('🔄 Falling back to mock data due to OpenAI error')
-      const report = generateMockReport(vcFirmName, companyName)
+      const report = generateMockReport(vcFirmName, companyName, contactName)
       console.log('✅ Fallback mock report generated')
       return NextResponse.json(report, { status: 200 })
     }

@@ -39,11 +39,11 @@ async function getBestAvailableModel(openai: OpenAI): Promise<string> {
   return 'gpt-3.5-turbo'
 }
 
-export async function researchVCFirm(vcFirmName: string, companyName: string) {
+export async function researchVCFirm(vcFirmName: string, companyName: string, contactName?: string) {
   const openai = getOpenAIClient()
   
   // Debug logging
-  console.log('🔍 Research request:', { vcFirmName, companyName })
+  console.log('🔍 Research request:', { vcFirmName, companyName, contactName })
   
   // Determine the best available model
   const model = await getBestAvailableModel(openai)
@@ -69,7 +69,13 @@ CRITICAL QUALITY REQUIREMENTS:
 - Keep descriptions concise but informative (2-3 sentences max)
 - Empty arrays are acceptable if no real data is available
 
-Research the VC firm "${vcFirmName}" and provide a comprehensive analysis for "${companyName}" who is preparing for investor meetings.
+Research the VC firm "${vcFirmName}" and provide a comprehensive analysis for "${companyName}" who is preparing for investor meetings.${contactName ? `
+
+SPECIAL FOCUS: The user will be meeting with "${contactName}" from ${vcFirmName}. Please:
+- Include this contact in the keyContacts section with isUserContact: true
+- Research this specific person's background, investment focus, and experience
+- If limited information is available about this contact, indicate this clearly
+- Provide insights on how to best prepare for a meeting with this specific person` : ''}
 
 IMPORTANT: You are researching "${vcFirmName}" specifically - NOT any other VC firm. All data must be about "${vcFirmName}" only. Do not confuse this with other firms like Andreessen Horowitz, Sequoia Capital, or any other VC firm.
 
@@ -96,13 +102,15 @@ Please provide a detailed JSON response with the following structure:
         "exitValue": "Exit valuation or acquisition price if known"
       }
     ],
-    "keyPartners": [
+    "keyContacts": [
       {
-        "name": "Partner name",
-        "title": "Partner title",
+        "name": "Contact name",
+        "title": "Contact title",
         "focusArea": "Technology focus area most relevant to ${companyName}",
         "experience": "Brief background and expertise",
-        "relevanceReason": "Why this partner is specifically relevant to ${companyName}'s sector and stage"
+        "relevanceReason": "Why this contact is specifically relevant to ${companyName}'s sector and stage",
+        "isUserContact": false,
+        "contactInfo": "Email or LinkedIn if publicly available"
       }
     ]
   },
