@@ -169,21 +169,18 @@ export function generateMockReport(vcFirmName: string, companyName: string, cont
         title: `${properVCName} Announces New $200M Fund for AI Startups`,
         source: "TechCrunch",
         date: "2024-12-15",
-        url: "https://techcrunch.com/example",
         summary: `${properVCName} has launched a new fund specifically targeting artificial intelligence and machine learning startups, signaling their commitment to the AI revolution.`
       },
       {
         title: `${properVCName} Partner Speaks at Web Summit 2024`,
         source: "VentureBeat",
         date: "2024-11-20",
-        url: "https://venturebeat.com/example",
         summary: "Key insights on the future of enterprise software and the importance of product-market fit in today's competitive landscape."
       },
       {
         title: `${properVCName} Leads Series A in Climate Tech Startup`,
         source: "Forbes",
         date: "2024-10-30",
-        url: "https://forbes.com/example",
         summary: "The firm continues to diversify its portfolio with strategic investments in sustainable technology solutions."
       }
     ],

@@ -35,7 +35,7 @@ export interface RecentNews {
   title: string;
   source: string;
   date: string;
-  url: string;
+  url?: string;
   summary: string;
 }
 

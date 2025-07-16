@@ -63,6 +63,7 @@ CRITICAL QUALITY REQUIREMENTS:
 - NEVER make up or fabricate information - if you don't know something, explicitly state "Information not publicly available"
 - DO NOT create fake names like "Jane Doe" or "John Smith" - use real partner names or state "Partner information not publicly available"
 - DO NOT invent portfolio companies or investment amounts - only include verifiable investments
+- DO NOT fabricate URLs - only include actual, verifiable URLs. If you don't have the real URL, omit the "url" field entirely
 - If you cannot find recent data, state "No recent [news/investments] found in public sources" rather than creating fake entries
 - When uncertain about data accuracy, prefix with "According to public sources" or "Reported as"
 - Ensure all dates are in YYYY-MM-DD format
@@ -119,7 +120,7 @@ Please provide a detailed JSON response with the following structure:
       "title": "News headline from the last 12 months",
       "source": "News source",
       "date": "YYYY-MM-DD",
-      "url": "Article URL if available",
+      "url": "ONLY include if you have the actual, verifiable URL - otherwise omit this field entirely",
       "summary": "Brief summary focusing on relevance to current investment strategy"
     }
   ],
