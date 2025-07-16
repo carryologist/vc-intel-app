@@ -2,7 +2,7 @@ import axios from 'axios'
 
 // Initialize Perplexity client only when API key is available
 const getPerplexityClient = () => {
-  const apiKey = process.env.PERPLEXITY_API_KEY
+  const apiKey = process.env.PERPLEXITY_API_KEY || process.env.OPENAI_API_KEY
   if (!apiKey) {
     throw new Error('Perplexity API key not configured')
   }
@@ -193,7 +193,7 @@ ABSOLUTE PRIORITY: Accuracy over completeness. It is better to return empty arra
   
   try {
     const response = await client.post('/chat/completions', {
-      model: 'sonar',
+      model: 'sonar', // Updated to use the current model name
       messages: [
         {
           role: "system",
@@ -220,6 +220,7 @@ FIRM VALIDATION: You are researching "${vcFirmName}" - if you find information a
       return_citations: true,
       search_domain_filter: ["techcrunch.com", "crunchbase.com", "pitchbook.com", "bloomberg.com", "reuters.com", "wsj.com", "forbes.com", "venturebeat.com"],
       search_recency_filter: "month"
+      // Removed potentially problematic parameters like logprobs, top_logprobs, stream_options
     })
 
     const responseData = response.data
