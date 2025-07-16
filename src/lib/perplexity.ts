@@ -259,7 +259,7 @@ FIRM VALIDATION: You are researching "${vcFirmName}" - if you find information a
       
       // Check for fabricated contacts (common hallucination patterns)
       const contacts = parsedData.firmProfile?.keyContacts || []
-      const suspiciousContacts = contacts.filter(contact => 
+      const suspiciousContacts = contacts.filter((contact: any) => 
         contact.name?.toLowerCase().includes('marc andreessen') ||
         contact.name?.toLowerCase().includes('ben horowitz') ||
         contact.contactInfo?.includes('@a16z.com') ||
@@ -268,7 +268,7 @@ FIRM VALIDATION: You are researching "${vcFirmName}" - if you find information a
       
       if (suspiciousContacts.length > 0) {
         console.log('❌ ERROR: Fabricated contacts detected!')
-        console.log('  Suspicious contacts:', suspiciousContacts.map(c => c.name))
+        console.log('  Suspicious contacts:', suspiciousContacts.map((c: any) => c.name))
         throw new Error('AI fabricated contacts from other VC firms')
       }
       
