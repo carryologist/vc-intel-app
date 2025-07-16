@@ -23,16 +23,22 @@ export async function researchVCFirm(vcFirmName: string, companyName: string, co
   console.log('🔍 Research request:', { vcFirmName, companyName, contactName })
   
   const prompt = `
-You are a senior venture capital research analyst with 15+ years of experience in Silicon Valley. You have deep knowledge of VC firms, their investment patterns, portfolio companies, and market positioning. You specialize in preparing comprehensive due diligence reports for startup CEOs seeking funding.
+You are a venture capital research analyst. You MUST use web search to find ONLY verified, factual information about the specific VC firm requested.
+
+🚨 CRITICAL INSTRUCTIONS 🚨
+1. Search the web for "${vcFirmName}" specifically - do NOT confuse with other VC firms
+2. ONLY include information you find through web search with citations
+3. If you cannot find specific information, return "Information not publicly available"
+4. DO NOT make up partner names, investment amounts, or company details
+5. DO NOT include information about other VC firms (like Andreessen Horowitz, Sequoia, etc.)
 
 RESEARCH GUIDELINES:
-- Focus on factual, verifiable information from the last 12 months for news and investments
-- Prioritize recent investments and news from the past 12 months (2024)
-- For focus areas, be highly specific and granular (e.g., "Developer Tools", "DevOps Platforms", "AI Coding Assistants", "Cloud Infrastructure", "API Management", "Database Tools", "Monitoring & Observability" rather than broad terms like "Enterprise Software", "SaaS", or "B2B")
-- For competitive analysis, focus on direct product/service overlap with ${companyName}'s specific business model and technology stack
-- Provide specific dollar amounts and dates when available
-- Include partner names and their specific expertise areas
-- ONLY use information that can be verified through web search and citations
+- Search for the EXACT firm name: "${vcFirmName}"
+- Verify all partner names through the firm's official website or LinkedIn
+- Only include investments that are specifically attributed to "${vcFirmName}"
+- Focus on information from the last 12 months for news and recent investments
+- For competitive analysis, focus on direct product/service overlap with ${companyName}'s business model
+- ALWAYS provide citations for every piece of information
 
 🚨 CRITICAL ANTI-HALLUCINATION REQUIREMENTS 🚨
 
@@ -191,7 +197,18 @@ ABSOLUTE PRIORITY: Accuracy over completeness. It is better to return empty arra
       messages: [
         {
           role: "system",
-          content: `You are a senior venture capital research analyst with access to real-time web search. 🚨 CRITICAL ANTI-HALLUCINATION DIRECTIVE 🚨: You are ABSOLUTELY FORBIDDEN from fabricating ANY information. This tool is used for real investor meetings where accuracy is paramount. You MUST use web search to find verified information about "${vcFirmName}". If you don't have verified information from web search, you MUST return empty arrays or state "Information not publicly available". NEVER invent news articles, investment amounts, partner names, or company details. Empty sections are infinitely better than fabricated information. FOCUS ONLY ON: "${vcFirmName}" - do not confuse with other firms. Always provide citations for any factual claims.`
+          content: `You are a venture capital research analyst with access to real-time web search. 
+          
+🚨 ABSOLUTE REQUIREMENTS 🚨
+1. ONLY research the EXACT firm: "${vcFirmName}"
+2. Use web search to verify ALL information
+3. NEVER include information about other VC firms (Andreessen Horowitz, Sequoia Capital, etc.)
+4. If you cannot find verified information, return "Information not publicly available"
+5. NEVER fabricate partner names, investments, or news articles
+6. Every fact MUST have a citation from web search
+7. Empty sections are better than fake information
+
+FIRM VALIDATION: You are researching "${vcFirmName}" - if you find information about a different firm, DO NOT include it. Only include information specifically about "${vcFirmName}".`
         },
         {
           role: "user",
@@ -230,10 +247,29 @@ ABSOLUTE PRIORITY: Accuracy over completeness. It is better to return empty arra
       console.log('  Requested:', requestedFirmName)
       console.log('  Returned:', returnedFirmName)
       
-      if (returnedFirmName && !returnedFirmName.includes(requestedFirmName.split(' ')[0])) {
-        console.log('⚠️ WARNING: Firm name mismatch detected!')
-        console.log('  This might indicate the AI confused different firms')
-        // Still return the data but log the warning
+      // Check for common wrong firms that AI might confuse
+      const wrongFirms = ['andreessen horowitz', 'a16z', 'sequoia', 'kleiner perkins', 'accel']
+      const isWrongFirm = wrongFirms.some(wrong => returnedFirmName?.includes(wrong))
+      
+      if (isWrongFirm || (returnedFirmName && !returnedFirmName.includes(requestedFirmName.split(' ')[0]))) {
+        console.log('❌ ERROR: Wrong firm detected in response!')
+        console.log('  AI returned information about a different firm')
+        throw new Error(`AI returned information about wrong firm: ${returnedFirmName}. Expected: ${requestedFirmName}`)
+      }
+      
+      // Check for fabricated contacts (common hallucination patterns)
+      const contacts = parsedData.firmProfile?.keyContacts || []
+      const suspiciousContacts = contacts.filter(contact => 
+        contact.name?.toLowerCase().includes('marc andreessen') ||
+        contact.name?.toLowerCase().includes('ben horowitz') ||
+        contact.contactInfo?.includes('@a16z.com') ||
+        contact.contactInfo?.includes('@sequoiacap.com')
+      )
+      
+      if (suspiciousContacts.length > 0) {
+        console.log('❌ ERROR: Fabricated contacts detected!')
+        console.log('  Suspicious contacts:', suspiciousContacts.map(c => c.name))
+        throw new Error('AI fabricated contacts from other VC firms')
       }
       
       // Add citations from Perplexity response if available
