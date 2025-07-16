@@ -8,21 +8,39 @@ interface ResearchResultsProps {
 
 export function ResearchResults({ report }: ResearchResultsProps) {
   return (
-    <div className="space-y-8">
+    <div className="space-y-10">
       <div className="text-center print-section">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          VC Research Report: {report.firmProfile.name}
+        <div className="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl mb-4 shadow-lg">
+          <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <h1 className="text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-3">
+          VC Research Report
         </h1>
-        <p className="text-gray-600">
+        <h2 className="text-2xl font-semibold text-blue-600 mb-4">
+          {report.firmProfile.name}
+        </h2>
+        <div className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 rounded-full text-sm text-gray-600">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
           Generated on {new Date(report.generatedAt).toLocaleDateString()}
-        </p>
+        </div>
       </div>
 
       {/* VC Firm Profile */}
-      <div className="bg-white rounded-lg shadow-lg p-6 print-section print-bg">
-        <h3 className="text-xl font-semibold text-gray-900 mb-4">
-          📊 Firm Profile
-        </h3>
+      <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-8 print-section print-bg hover:shadow-2xl transition-all duration-300">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-xl flex items-center justify-center">
+            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+          </div>
+          <h3 className="text-2xl font-bold text-gray-900">
+            Firm Profile
+          </h3>
+        </div>
         <div className="grid md:grid-cols-2 gap-4">
           <div>
             <h4 className="font-medium text-gray-700">Name</h4>
@@ -61,10 +79,17 @@ export function ResearchResults({ report }: ResearchResultsProps) {
       </div>
 
       {/* Key Contacts */}
-      <div className="bg-white rounded-lg shadow-lg p-6 print-section print-bg">
-        <h3 className="text-xl font-semibold text-gray-900 mb-4">
-          👥 Key Contacts
-        </h3>
+      <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-8 print-section print-bg hover:shadow-2xl transition-all duration-300">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
+            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
+          </div>
+          <h3 className="text-2xl font-bold text-gray-900">
+            Key Contacts
+          </h3>
+        </div>
         <div className="space-y-4">
           {report.firmProfile.keyContacts && report.firmProfile.keyContacts.length > 0 ? (
             report.firmProfile.keyContacts.map((contact, index) => (
@@ -114,10 +139,17 @@ export function ResearchResults({ report }: ResearchResultsProps) {
       </div>
 
       {/* Notable Investments */}
-      <div className="bg-white rounded-lg shadow-lg p-6 print-section print-bg">
-        <h3 className="text-xl font-semibold text-gray-900 mb-4">
-          🏆 Notable Portfolio Investments
-        </h3>
+      <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-8 print-section print-bg hover:shadow-2xl transition-all duration-300">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-10 h-10 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-xl flex items-center justify-center">
+            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+            </svg>
+          </div>
+          <h3 className="text-2xl font-bold text-gray-900">
+            Notable Portfolio Investments
+          </h3>
+        </div>
         <div className="grid md:grid-cols-2 gap-4">
           {report.firmProfile.notableInvestments && report.firmProfile.notableInvestments.length > 0 ? (
             report.firmProfile.notableInvestments.map((investment, index) => (
@@ -157,10 +189,17 @@ export function ResearchResults({ report }: ResearchResultsProps) {
       </div>
 
       {/* Recent News */}
-      <div className="bg-white rounded-lg shadow-lg p-6 print-section print-bg">
-        <h3 className="text-xl font-semibold text-gray-900 mb-4">
-          📰 Recent News
-        </h3>
+      <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-8 print-section print-bg hover:shadow-2xl transition-all duration-300">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-teal-500 rounded-xl flex items-center justify-center">
+            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+            </svg>
+          </div>
+          <h3 className="text-2xl font-bold text-gray-900">
+            Recent News
+          </h3>
+        </div>
         <div className="space-y-4">
           {report.recentNews.map((news, index) => (
             <div key={index} className="border-l-4 border-blue-500 pl-4">
@@ -185,10 +224,17 @@ export function ResearchResults({ report }: ResearchResultsProps) {
       </div>
 
       {/* Recent Investments */}
-      <div className="bg-white rounded-lg shadow-lg p-6 print-section print-bg">
-        <h3 className="text-xl font-semibold text-gray-900 mb-4">
-          💰 Recent Investments
-        </h3>
+      <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-8 print-section print-bg hover:shadow-2xl transition-all duration-300">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-10 h-10 bg-gradient-to-r from-emerald-500 to-green-500 rounded-xl flex items-center justify-center">
+            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <h3 className="text-2xl font-bold text-gray-900">
+            Recent Investments
+          </h3>
+        </div>
         <div className="space-y-4">
           {report.recentInvestments.map((investment, index) => (
             <div key={index} className="border border-gray-200 rounded-lg p-4">
@@ -208,10 +254,17 @@ export function ResearchResults({ report }: ResearchResultsProps) {
       </div>
 
       {/* Competitive Analysis */}
-      <div className="bg-white rounded-lg shadow-lg p-6 print-section print-bg">
-        <h3 className="text-xl font-semibold text-gray-900 mb-4">
-          🎯 Competitive Analysis
-        </h3>
+      <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-8 print-section print-bg hover:shadow-2xl transition-all duration-300">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-10 h-10 bg-gradient-to-r from-red-500 to-pink-500 rounded-xl flex items-center justify-center">
+            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+          </div>
+          <h3 className="text-2xl font-bold text-gray-900">
+            Competitive Analysis
+          </h3>
+        </div>
         <div className="space-y-4">
           {report.competitiveAnalysis.map((analysis, index) => {
             const getBackgroundColor = (similarity: string) => {
