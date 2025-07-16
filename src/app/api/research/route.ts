@@ -22,6 +22,7 @@ export async function POST(request: NextRequest) {
     // Check if Perplexity API key is available
     const hasApiKey = !!process.env.PERPLEXITY_API_KEY
     console.log('🔑 Perplexity API key present:', hasApiKey)
+    console.log('🔍 Environment check:', process.env.NODE_ENV)
     
     if (!process.env.PERPLEXITY_API_KEY) {
       console.log('📝 Using mock data (no API key)')
