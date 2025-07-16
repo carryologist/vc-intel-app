@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { researchVCFirm } from '@/lib/openai'
+import { researchVCFirm } from '@/lib/perplexity'
 import { generateMockReport } from '@/lib/mock-data'
 
 export async function POST(request: NextRequest) {
@@ -19,28 +19,28 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check if OpenAI API key is available
-    const hasApiKey = !!process.env.OPENAI_API_KEY
-    console.log('🔑 OpenAI API key present:', hasApiKey)
+    // Check if Perplexity API key is available
+    const hasApiKey = !!process.env.PERPLEXITY_API_KEY
+    console.log('🔑 Perplexity API key present:', hasApiKey)
     
-    if (!process.env.OPENAI_API_KEY) {
+    if (!process.env.PERPLEXITY_API_KEY) {
       console.log('📝 Using mock data (no API key)')
       const report = generateMockReport(vcFirmName, companyName, contactName)
       console.log('✅ Mock report generated successfully')
       return NextResponse.json(report, { status: 200 })
     }
 
-    // Use real OpenAI research if API key is available
-    console.log('🤖 Using OpenAI for real research')
+    // Use real Perplexity research if API key is available
+    console.log('🔍 Using Perplexity for real web-based research')
     try {
       const report = await researchVCFirm(vcFirmName, companyName, contactName)
-      console.log('✅ OpenAI report generated successfully')
+      console.log('✅ Perplexity report generated successfully')
       return NextResponse.json(report, { status: 200 })
-    } catch (openaiError) {
-      console.error('❌ OpenAI research failed:', openaiError)
+    } catch (perplexityError) {
+      console.error('❌ Perplexity research failed:', perplexityError)
       
-      // Fallback to mock data if OpenAI fails
-      console.log('🔄 Falling back to mock data due to OpenAI error')
+      // Fallback to mock data if Perplexity fails
+      console.log('🔄 Falling back to mock data due to Perplexity error')
       const report = generateMockReport(vcFirmName, companyName, contactName)
       console.log('✅ Fallback mock report generated')
       return NextResponse.json(report, { status: 200 })

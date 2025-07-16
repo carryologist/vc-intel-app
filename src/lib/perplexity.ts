@@ -1,52 +1,26 @@
-import OpenAI from 'openai'
+import axios from 'axios'
 
-// Initialize OpenAI client only when API key is available
-const getOpenAIClient = () => {
-  const apiKey = process.env.OPENAI_API_KEY
+// Initialize Perplexity client only when API key is available
+const getPerplexityClient = () => {
+  const apiKey = process.env.PERPLEXITY_API_KEY
   if (!apiKey) {
-    throw new Error('OpenAI API key not configured')
+    throw new Error('Perplexity API key not configured')
   }
-  return new OpenAI({ apiKey })
-}
-
-// Function to determine the best available model
-async function getBestAvailableModel(openai: OpenAI): Promise<string> {
-  const modelsToTry = ['gpt-4o', 'gpt-4-turbo', 'gpt-4', 'gpt-4o-mini', 'gpt-3.5-turbo']
   
-  for (const model of modelsToTry) {
-    try {
-      // Test the model with a simple request
-      await openai.chat.completions.create({
-        model,
-        messages: [{ role: 'user', content: 'test' }],
-        max_tokens: 1
-      })
-      console.log(`✅ Using model: ${model}`)
-      return model
-    } catch (error: any) {
-      if (error?.status === 404 || error?.code === 'model_not_found') {
-        console.log(`❌ Model ${model} not available, trying next...`)
-        continue
-      }
-      // If it's not a model availability error, use this model anyway
-      console.log(`⚠️ Model ${model} test failed but will try to use it:`, error?.message)
-      return model
+  return axios.create({
+    baseURL: 'https://api.perplexity.ai',
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json'
     }
-  }
-  
-  // Fallback to gpt-3.5-turbo if all else fails
-  console.log('🔄 Falling back to gpt-3.5-turbo')
-  return 'gpt-3.5-turbo'
+  })
 }
 
 export async function researchVCFirm(vcFirmName: string, companyName: string, contactName?: string) {
-  const openai = getOpenAIClient()
+  const client = getPerplexityClient()
   
   // Debug logging
   console.log('🔍 Research request:', { vcFirmName, companyName, contactName })
-  
-  // Determine the best available model
-  const model = await getBestAvailableModel(openai)
   
   const prompt = `
 You are a senior venture capital research analyst with 15+ years of experience in Silicon Valley. You have deep knowledge of VC firms, their investment patterns, portfolio companies, and market positioning. You specialize in preparing comprehensive due diligence reports for startup CEOs seeking funding.
@@ -58,6 +32,7 @@ RESEARCH GUIDELINES:
 - For competitive analysis, focus on direct product/service overlap with ${companyName}'s specific business model and technology stack
 - Provide specific dollar amounts and dates when available
 - Include partner names and their specific expertise areas
+- ONLY use information that can be verified through web search and citations
 
 🚨 CRITICAL ANTI-HALLUCINATION REQUIREMENTS 🚨
 
@@ -73,17 +48,19 @@ You are STRICTLY FORBIDDEN from fabricating, inventing, or making up ANY informa
 - Recent news or press releases
 
 ✅ REQUIRED BEHAVIOR:
+- ONLY use information found through web search with proper citations
 - If you don't have verified information, explicitly state "Information not publicly available"
-- Use ONLY information from your training data that you're confident about
-- When uncertain, use phrases like "According to available sources" or "Reported as"
+- Use ONLY information that you can cite with real sources
+- When uncertain, use phrases like "According to [source]" or "Reported by [publication]"
 - Empty arrays/sections are BETTER than fabricated information
 - If no recent news exists, return empty news array rather than inventing articles
-- Only include URLs if you're absolutely certain they exist
+- Only include URLs if they are from your search results
 - Dates must be in YYYY-MM-DD format and be realistic
 - Keep descriptions factual and concise (2-3 sentences max)
+- Always provide citations for any factual claims
 
 ⚠️ VERIFICATION STANDARD:
-Before including ANY piece of information, ask yourself: "Am I certain this is real and accurate?" If not, omit it.
+Before including ANY piece of information, ask yourself: "Did I find this through web search with a verifiable source?" If not, omit it.
 
 Research the VC firm "${vcFirmName}" and provide a comprehensive analysis for "${companyName}" who is preparing for investor meetings.${contactName ? `
 
@@ -100,22 +77,23 @@ Please provide a detailed JSON response with the following structure:
 {
   "firmProfile": {
     "name": "Exact firm name (properly capitalized)",
-    "description": "Detailed description of the firm's investment philosophy and approach",
+    "description": "Detailed description of the firm's investment philosophy",
     "founded": "Year founded",
     "location": "Primary location",
     "website": "Official website URL",
-    "focusAreas": ["Array of specific, granular focus areas - be precise (e.g., 'Developer Tools', 'DevOps Platforms', 'AI Coding Assistants', 'Cloud Infrastructure', 'API Management' rather than generic terms like 'Enterprise Software')"],
+    "focusAreas": ["Specific investment focus areas"],
     "typicalInvestmentSize": "Investment range",
     "stage": ["Investment stages they focus on"],
     "notableInvestments": [
       {
-        "companyName": "Notable portfolio company",
-        "amount": "Investment amount",
+        "companyName": "Portfolio company name",
+        "amount": "Investment amount if known",
         "date": "YYYY-MM-DD",
         "round": "Series A/B/Seed etc",
-        "description": "Brief company description",
+        "description": "Brief description",
         "exitStatus": "Public/Acquired/Private",
-        "exitValue": "Exit valuation or acquisition price if known"
+        "exitValue": "Exit valuation or acquisition price if known",
+        "source": "Citation for this information"
       }
     ],
     "keyContacts": [
@@ -126,27 +104,29 @@ Please provide a detailed JSON response with the following structure:
         "experience": "Brief background and expertise",
         "relevanceReason": "Why this contact is specifically relevant to ${companyName}'s sector and stage",
         "isUserContact": false,
-        "contactInfo": "Email or LinkedIn if publicly available"
+        "contactInfo": "Email or LinkedIn if publicly available",
+        "source": "Citation for this information"
       }
     ]
   },
   "recentNews": [
     {
-      "title": "ONLY real news headlines you're certain exist - NO FABRICATION",
+      "title": "ONLY real news headlines with citations",
       "source": "Actual news source (TechCrunch, Forbes, etc.)",
       "date": "YYYY-MM-DD (must be realistic and recent)",
-      "url": "ONLY include if you have the actual, verifiable URL - otherwise omit this field entirely",
-      "summary": "Brief factual summary - NO SPECULATION"
+      "url": "ONLY include if found in search results",
+      "summary": "Brief factual summary with citation",
+      "citation": "Full citation for verification"
     }
   ],
-  "NOTE": "If you cannot find verified recent news about this VC firm, return an empty recentNews array. DO NOT invent news articles.",
   "recentInvestments": [
     {
       "companyName": "Portfolio company name (last 12 months)",
       "amount": "Investment amount",
       "date": "YYYY-MM-DD",
       "round": "Series A/B/Seed etc",
-      "description": "Brief description focusing on why this investment is relevant to ${companyName}"
+      "description": "Brief description focusing on why this investment is relevant to ${companyName}",
+      "source": "Citation for this information"
     }
   ],
   "competitiveAnalysis": [
@@ -154,7 +134,8 @@ Please provide a detailed JSON response with the following structure:
       "companyName": "Portfolio company name",
       "similarity": "High/Medium/Low",
       "reasoning": "Detailed analysis of direct product/service overlap, specific technology stack similarities, and exact competitive conflicts with ${companyName}'s business model. Focus on precise competitive dynamics rather than broad market categories.",
-      "potentialConcerns": ["Specific concerns about competition, market positioning conflicts, or partnership risks"]
+      "potentialConcerns": ["Specific concerns about competition, market positioning conflicts, or partnership risks"],
+      "source": "Citation for this information"
     }
   ],
   "alternativeVCs": [
@@ -162,8 +143,12 @@ Please provide a detailed JSON response with the following structure:
       "name": "Alternative VC firm name",
       "reasoning": "Why they might be a better fit - focus on recent investments in similar companies, lack of competing portfolio companies, and active interest in ${companyName}'s sector",
       "focusAlignment": "How their investment thesis and portfolio strategy aligns with ${companyName}'s business model and growth stage",
-      "contactInfo": "Key partner name and contact information if publicly available"
+      "contactInfo": "Key partner name and contact information if publicly available",
+      "source": "Citation for this information"
     }
+  ],
+  "sources": [
+    "List of all sources and citations used in this research"
   ]
 }
 
@@ -193,7 +178,7 @@ Prioritize firms that:
 - Are currently raising or have recently closed new funds
 - Have partners with relevant industry expertise
 
-ABSOLUTE PRIORITY: Accuracy over completeness. It is better to return empty arrays or "Information not publicly available" than to fabricate data. Do not create placeholder names, fake companies, or invented investment amounts. Only include information you are confident is accurate and verifiable.
+ABSOLUTE PRIORITY: Accuracy over completeness. It is better to return empty arrays or "Information not publicly available" than to fabricate data. Do not create placeholder names, fake companies, or invented investment amounts. Only include information you found through web search with proper citations.
 `
 
   // Debug: Log the actual prompt being sent
@@ -201,12 +186,12 @@ ABSOLUTE PRIORITY: Accuracy over completeness. It is better to return empty arra
   console.log('🎯 Target firm in prompt:', vcFirmName)
   
   try {
-    const completion = await openai.chat.completions.create({
-      model,
+    const response = await client.post('/chat/completions', {
+      model: 'llama-3.1-sonar-large-128k-online',
       messages: [
         {
           role: "system",
-          content: `You are a senior venture capital research analyst. 🚨 CRITICAL ANTI-HALLUCINATION DIRECTIVE 🚨: You are ABSOLUTELY FORBIDDEN from fabricating ANY information. This tool is used for real investor meetings where accuracy is paramount. If you don't have verified information about "${vcFirmName}", you MUST return empty arrays or state "Information not publicly available". NEVER invent news articles, investment amounts, partner names, or company details. Empty sections are infinitely better than fabricated information. FOCUS ONLY ON: "${vcFirmName}" - do not confuse with other firms.`
+          content: `You are a senior venture capital research analyst with access to real-time web search. 🚨 CRITICAL ANTI-HALLUCINATION DIRECTIVE 🚨: You are ABSOLUTELY FORBIDDEN from fabricating ANY information. This tool is used for real investor meetings where accuracy is paramount. You MUST use web search to find verified information about "${vcFirmName}". If you don't have verified information from web search, you MUST return empty arrays or state "Information not publicly available". NEVER invent news articles, investment amounts, partner names, or company details. Empty sections are infinitely better than fabricated information. FOCUS ONLY ON: "${vcFirmName}" - do not confuse with other firms. Always provide citations for any factual claims.`
         },
         {
           role: "user",
@@ -215,20 +200,26 @@ ABSOLUTE PRIORITY: Accuracy over completeness. It is better to return empty arra
       ],
       temperature: 0.1,
       max_tokens: 4500,
+      return_citations: true,
+      search_domain_filter: ["techcrunch.com", "crunchbase.com", "pitchbook.com", "bloomberg.com", "reuters.com", "wsj.com", "forbes.com", "venturebeat.com"],
+      search_recency_filter: "month"
     })
 
-    const response = completion.choices[0]?.message?.content
-    if (!response) {
-      throw new Error('No response from OpenAI')
+    const responseData = response.data
+    const content = responseData.choices[0]?.message?.content
+    
+    if (!content) {
+      throw new Error('Empty response from Perplexity')
     }
-
-    // Try to parse the JSON response
+    
+    // Extract JSON from response
+    const jsonMatch = content.match(/\{[\s\S]*\}/)
+    if (!jsonMatch) {
+      console.error('No JSON found in Perplexity response')
+      throw new Error('Invalid response format from Perplexity')
+    }
+    
     try {
-      const jsonMatch = response.match(/\{[\s\S]*\}/)
-      if (!jsonMatch) {
-        throw new Error('No JSON found in response')
-      }
-      
       const parsedData = JSON.parse(jsonMatch[0])
       
       // Validate that the response is about the correct firm
@@ -245,16 +236,26 @@ ABSOLUTE PRIORITY: Accuracy over completeness. It is better to return empty arra
         // Still return the data but log the warning
       }
       
+      // Add citations from Perplexity response if available
+      const citations = responseData.citations || []
+      
       return {
         ...parsedData,
-        generatedAt: new Date().toISOString()
+        generatedAt: new Date().toISOString(),
+        citations: citations,
+        model: 'llama-3.1-sonar-large-128k-online',
+        provider: 'Perplexity'
       }
     } catch (parseError) {
-      console.error('Failed to parse OpenAI response:', parseError)
+      console.error('Failed to parse Perplexity response:', parseError)
       throw new Error('Failed to parse research results')
     }
   } catch (error) {
-    console.error('OpenAI API error:', error)
+    console.error('Perplexity API error:', error)
+    if (axios.isAxiosError(error)) {
+      console.error('Response data:', error.response?.data)
+      console.error('Response status:', error.response?.status)
+    }
     throw new Error('Failed to research VC firm')
   }
 }
