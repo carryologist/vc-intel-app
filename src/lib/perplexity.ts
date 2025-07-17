@@ -3,24 +3,85 @@ import axios from 'axios'
 // Initialize Perplexity client only when API key is available
 const getPerplexityClient = () => {
   const apiKey = process.env.PERPLEXITY_API_KEY
+  
+  console.log('🔧 [PERPLEXITY] Initializing client...')
+  console.log('🔧 [PERPLEXITY] API Key present:', !!apiKey)
+  console.log('🔧 [PERPLEXITY] API Key length:', apiKey?.length || 0)
+  console.log('🔧 [PERPLEXITY] API Key prefix:', apiKey?.substring(0, 12) || 'none')
+  console.log('🔧 [PERPLEXITY] Environment:', process.env.NODE_ENV)
+  
   if (!apiKey) {
+    console.error('❌ [PERPLEXITY] API key not configured')
     throw new Error('Perplexity API key not configured')
   }
   
-  return axios.create({
+  const client = axios.create({
     baseURL: 'https://api.perplexity.ai',
     headers: {
       'Authorization': `Bearer ${apiKey}`,
       'Content-Type': 'application/json'
-    }
+    },
+    timeout: 30000 // 30 second timeout
   })
+  
+  // Add request interceptor for debugging
+  client.interceptors.request.use(
+    (config) => {
+      console.log('📤 [PERPLEXITY] Outgoing request:')
+      console.log('📤 [PERPLEXITY] URL:', config.baseURL + config.url)
+      console.log('📤 [PERPLEXITY] Method:', config.method?.toUpperCase())
+      console.log('📤 [PERPLEXITY] Headers:', JSON.stringify(config.headers, null, 2))
+      console.log('📤 [PERPLEXITY] Data size:', JSON.stringify(config.data).length, 'characters')
+      console.log('📤 [PERPLEXITY] Timestamp:', new Date().toISOString())
+      return config
+    },
+    (error) => {
+      console.error('❌ [PERPLEXITY] Request interceptor error:', error)
+      return Promise.reject(error)
+    }
+  )
+  
+  // Add response interceptor for debugging
+  client.interceptors.response.use(
+    (response) => {
+      console.log('📥 [PERPLEXITY] Response received:')
+      console.log('📥 [PERPLEXITY] Status:', response.status)
+      console.log('📥 [PERPLEXITY] Status Text:', response.statusText)
+      console.log('📥 [PERPLEXITY] Headers:', JSON.stringify(response.headers, null, 2))
+      console.log('📥 [PERPLEXITY] Data size:', JSON.stringify(response.data).length, 'characters')
+      console.log('📥 [PERPLEXITY] Timestamp:', new Date().toISOString())
+      return response
+    },
+    (error) => {
+      console.error('❌ [PERPLEXITY] Response error:')
+      console.error('❌ [PERPLEXITY] Error message:', error.message)
+      console.error('❌ [PERPLEXITY] Error code:', error.code)
+      console.error('❌ [PERPLEXITY] Response status:', error.response?.status)
+      console.error('❌ [PERPLEXITY] Response data:', error.response?.data)
+      console.error('❌ [PERPLEXITY] Response headers:', error.response?.headers)
+      console.error('❌ [PERPLEXITY] Full error:', error)
+      return Promise.reject(error)
+    }
+  )
+  
+  console.log('✅ [PERPLEXITY] Client initialized successfully')
+  return client
 }
 
 export async function researchVCFirm(vcFirmName: string, companyName: string, contactName?: string) {
-  const client = getPerplexityClient()
+  console.log('🚀 [RESEARCH] Starting VC firm research...')
+  console.log('🚀 [RESEARCH] Parameters:', { vcFirmName, companyName, contactName })
+  console.log('🚀 [RESEARCH] Timestamp:', new Date().toISOString())
   
-  // Debug logging
-  console.log('🔍 Research request:', { vcFirmName, companyName, contactName })
+  let client
+  try {
+    console.log('🔧 [RESEARCH] Initializing Perplexity client...')
+    client = getPerplexityClient()
+    console.log('✅ [RESEARCH] Client initialized successfully')
+  } catch (clientError) {
+    console.error('❌ [RESEARCH] Failed to initialize client:', clientError)
+    throw new Error(`Client initialization failed: ${clientError instanceof Error ? clientError.message : 'Unknown error'}`)
+  }
   
   const prompt = `
 You are a venture capital research analyst. You MUST use web search to find ONLY verified, factual information about the specific VC firm requested.
@@ -188,17 +249,17 @@ ABSOLUTE PRIORITY: Accuracy over completeness. It is better to return empty arra
 `
 
   // Debug: Log the actual prompt being sent
-  console.log('📝 Prompt preview:', prompt.substring(0, 200) + '...')
-  console.log('🎯 Target firm in prompt:', vcFirmName)
+  console.log('📝 [RESEARCH] Prompt preview:', prompt.substring(0, 200) + '...')
+  console.log('🎯 [RESEARCH] Target firm in prompt:', vcFirmName)
+  console.log('📝 [RESEARCH] Full prompt length:', prompt.length, 'characters')
   
-  try {
-    const response = await client.post('/chat/completions', {
-      model: 'sonar',
-      messages: [
-        {
-          role: "system",
-          content: `You are a venture capital research analyst with access to real-time web search. 
-          
+  const requestPayload = {
+    model: 'sonar',
+    messages: [
+      {
+        role: "system",
+        content: `You are a venture capital research analyst with access to real-time web search. 
+        
 🚨 ABSOLUTE REQUIREMENTS 🚨
 1. ONLY research the EXACT firm: "${vcFirmName}"
 2. Use web search to verify ALL information
@@ -209,23 +270,51 @@ ABSOLUTE PRIORITY: Accuracy over completeness. It is better to return empty arra
 7. Empty sections are better than fake information
 
 FIRM VALIDATION: You are researching "${vcFirmName}" - if you find information about a different firm, DO NOT include it. Only include information specifically about "${vcFirmName}".`
-        },
-        {
-          role: "user",
-          content: prompt
-        }
-      ],
-      temperature: 0.1,
-      max_tokens: 4500,
-      return_citations: true,
-      search_domain_filter: ["techcrunch.com", "crunchbase.com", "pitchbook.com", "bloomberg.com", "reuters.com", "wsj.com", "forbes.com", "venturebeat.com"],
-      search_recency_filter: "month"
-    })
+      },
+      {
+        role: "user",
+        content: prompt
+      }
+    ],
+    temperature: 0.1,
+    max_tokens: 4500,
+    return_citations: true,
+    search_domain_filter: ["techcrunch.com", "crunchbase.com", "pitchbook.com", "bloomberg.com", "reuters.com", "wsj.com", "forbes.com", "venturebeat.com"],
+    search_recency_filter: "month"
+  }
+  
+  console.log('📦 [RESEARCH] Request payload prepared:')
+  console.log('📦 [RESEARCH] Model:', requestPayload.model)
+  console.log('📦 [RESEARCH] Messages count:', requestPayload.messages.length)
+  console.log('📦 [RESEARCH] Temperature:', requestPayload.temperature)
+  console.log('📦 [RESEARCH] Max tokens:', requestPayload.max_tokens)
+  console.log('📦 [RESEARCH] Return citations:', requestPayload.return_citations)
+  console.log('📦 [RESEARCH] Search domains:', requestPayload.search_domain_filter)
+  console.log('📦 [RESEARCH] Search recency:', requestPayload.search_recency_filter)
+  
+  try {
+    console.log('🚀 [RESEARCH] Making API call to Perplexity...')
+    const startTime = Date.now()
+    
+    const response = await client.post('/chat/completions', requestPayload)
+    
+    const endTime = Date.now()
+    const duration = endTime - startTime
+    console.log('✅ [RESEARCH] API call completed successfully')
+    console.log('⏱️ [RESEARCH] Duration:', duration, 'ms')
 
+    console.log('📥 [RESEARCH] Processing response...')
     const responseData = response.data
+    console.log('📥 [RESEARCH] Response data keys:', Object.keys(responseData))
+    console.log('📥 [RESEARCH] Choices count:', responseData.choices?.length || 0)
+    
     const content = responseData.choices[0]?.message?.content
+    console.log('📥 [RESEARCH] Content length:', content?.length || 0)
+    console.log('📥 [RESEARCH] Content preview:', content?.substring(0, 200) + '...')
     
     if (!content) {
+      console.error('❌ [RESEARCH] Empty response from Perplexity')
+      console.error('❌ [RESEARCH] Full response data:', JSON.stringify(responseData, null, 2))
       throw new Error('Empty response from Perplexity')
     }
     
@@ -287,11 +376,26 @@ FIRM VALIDATION: You are researching "${vcFirmName}" - if you find information a
       throw new Error('Failed to parse research results')
     }
   } catch (error) {
-    console.error('Perplexity API error:', error)
+    console.error('❌ [RESEARCH] Perplexity API error occurred:')
+    console.error('❌ [RESEARCH] Error type:', error instanceof Error ? error.constructor.name : typeof error)
+    console.error('❌ [RESEARCH] Error message:', error instanceof Error ? error.message : 'Unknown error')
+    console.error('❌ [RESEARCH] Error stack:', error instanceof Error ? error.stack : 'No stack trace')
+    
     if (axios.isAxiosError(error)) {
-      console.error('Response data:', error.response?.data)
-      console.error('Response status:', error.response?.status)
+      console.error('❌ [RESEARCH] Axios error details:')
+      console.error('❌ [RESEARCH] Request URL:', error.config?.url)
+      console.error('❌ [RESEARCH] Request method:', error.config?.method)
+      console.error('❌ [RESEARCH] Request headers:', error.config?.headers)
+      console.error('❌ [RESEARCH] Response status:', error.response?.status)
+      console.error('❌ [RESEARCH] Response status text:', error.response?.statusText)
+      console.error('❌ [RESEARCH] Response headers:', error.response?.headers)
+      console.error('❌ [RESEARCH] Response data:', error.response?.data)
+      console.error('❌ [RESEARCH] Error code:', error.code)
+      console.error('❌ [RESEARCH] Error timeout:', error.timeout)
     }
-    throw new Error('Failed to research VC firm')
+    
+    const errorMessage = `Failed to research VC firm: ${error instanceof Error ? error.message : 'Unknown error'}`
+    console.error('❌ [RESEARCH] Throwing error:', errorMessage)
+    throw new Error(errorMessage)
   }
 }

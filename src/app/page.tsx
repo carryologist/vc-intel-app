@@ -11,8 +11,16 @@ export default function Home() {
   const [loading, setLoading] = useState(false)
 
   const handleResearch = async (vcFirmName: string, companyName: string, contactName?: string) => {
+    console.log('🚀 [CLIENT] Starting research request...')
+    console.log('🚀 [CLIENT] Parameters:', { vcFirmName, companyName, contactName })
+    console.log('🚀 [CLIENT] Timestamp:', new Date().toISOString())
+    
     setLoading(true)
+    const startTime = Date.now()
+    
     try {
+      console.log('📤 [CLIENT] Making fetch request to /api/research')
+      
       const response = await fetch('/api/research', {
         method: 'POST',
         headers: {
@@ -20,18 +28,66 @@ export default function Home() {
         },
         body: JSON.stringify({ vcFirmName, companyName, contactName }),
       })
+      
+      const endTime = Date.now()
+      const duration = endTime - startTime
+      
+      console.log('📥 [CLIENT] Response received:')
+      console.log('📥 [CLIENT] Status:', response.status)
+      console.log('📥 [CLIENT] Status Text:', response.statusText)
+      console.log('📥 [CLIENT] Headers:', Object.fromEntries(response.headers.entries()))
+      console.log('📥 [CLIENT] Duration:', duration, 'ms')
+      console.log('📥 [CLIENT] OK:', response.ok)
 
       if (!response.ok) {
-        throw new Error('Research failed')
+        console.error('❌ [CLIENT] Response not OK')
+        
+        let errorData
+        try {
+          errorData = await response.json()
+          console.error('❌ [CLIENT] Error response data:', errorData)
+        } catch (parseError) {
+          console.error('❌ [CLIENT] Failed to parse error response:', parseError)
+          errorData = { error: 'Unknown server error' }
+        }
+        
+        const errorMessage = errorData?.error || errorData?.details || `HTTP ${response.status}: ${response.statusText}`
+        console.error('❌ [CLIENT] Throwing error:', errorMessage)
+        throw new Error(errorMessage)
       }
 
+      console.log('📦 [CLIENT] Parsing response data...')
       const data = await response.json()
+      console.log('✅ [CLIENT] Data received successfully')
+      console.log('📦 [CLIENT] Data keys:', Object.keys(data))
+      console.log('📦 [CLIENT] Firm name in response:', data?.firmProfile?.name)
+      
       setReport(data)
+      console.log('✅ [CLIENT] Research completed successfully')
+      
     } catch (error) {
-      console.error('Research error:', error)
-      alert('Failed to research VC firm. Please try again.')
+      const endTime = Date.now()
+      const duration = endTime - startTime
+      
+      console.error('❌ [CLIENT] Research error occurred:')
+      console.error('❌ [CLIENT] Error type:', error instanceof Error ? error.constructor.name : typeof error)
+      console.error('❌ [CLIENT] Error message:', error instanceof Error ? error.message : 'Unknown error')
+      console.error('❌ [CLIENT] Error stack:', error instanceof Error ? error.stack : 'No stack trace')
+      console.error('❌ [CLIENT] Duration before error:', duration, 'ms')
+      console.error('❌ [CLIENT] Full error object:', error)
+      
+      // Check if it's a network error
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        console.error('🌐 [CLIENT] Network error detected')
+        alert('Network error: Unable to connect to the server. Please check your internet connection and try again.')
+      } else {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
+        console.error('❌ [CLIENT] Showing error to user:', errorMessage)
+        alert(`Failed to research VC firm: ${errorMessage}. Please try again.`)
+      }
     } finally {
       setLoading(false)
+      console.log('🏁 [CLIENT] Research request completed (loading set to false)')
     }
   }
 
